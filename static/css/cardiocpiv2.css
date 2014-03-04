@@ -1,0 +1,22 @@
+/*
+    Override some of Bootstrap's settings
+*/
+body {
+    background-color: #fffacd;
+    color: #000000
+}
+
+.header {
+    color: #891d2d;
+    display: inline;
+}
+.mirna-list {
+    color: #891d2d;
+}
+.errorlist {
+    color: red;
+}
+
+.non-field-errors {
+    color: red;
+}
