@@ -1,22 +1,17 @@
 /*
     Override some of Bootstrap's settings
 */
-body {
-    background-color: #fffacd;
-    color: #000000
-}
+
+body {background-color: #fffacd;}
 
 .header {
     color: #891d2d;
     display: inline;
 }
-.mirna-list {
-    color: #891d2d;
-}
-.errorlist {
-    color: red;
-}
 
-.non-field-errors {
-    color: red;
+#study-table td {
+    width: 21em;
+}
+#gene-entry-table td {
+    width: 21em;
 }
