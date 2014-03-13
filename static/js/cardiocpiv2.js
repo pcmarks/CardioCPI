@@ -17,7 +17,14 @@ var toggle_platforms = function(study) {
         $(this).toggle();
     });
 }
-
+var sleep = function(milliseconds) {
+    var start = new Date().getTime();
+    for (var i =0; i < 1e7; i++) {
+        if ((new Date().getTime() - start) > milliseconds){
+            break;
+        }
+    }
+}
 $(document).ready(function () {
   
   $('.btn-group').button();
@@ -33,16 +40,12 @@ $(document).ready(function () {
       var hidden = $(this).siblings('#platform');
       // load new symbol set and save id
       //chosen_one = chosen_one.replace(/\|/g, "/")
-      opencpu.r_fun_json(
-        "platform_selection",
-        {study_profile: this.id,
-          new: chosen_one,
-         old: hidden.val()
-        },
-        function(data) {
-            ;
-        });
-      //$.post("http://mri-deux.mmc.org:8082/" + chosen_one + "/gene_symbols")
+       $.ajax({
+           type: 'GET',
+           dataType: 'json',
+           url: 'platform_selection',
+           data: {study_profile: this.id, new: chosen_one, old: hidden.val()}
+       })
       hidden.val(chosen_one);
     });
 
@@ -53,26 +56,27 @@ $(document).ready(function () {
      */
     $("[id^='symbols_']").each(function() {
         var thisId = this.id;
+        var tokens = thisId.split('_')
         $(this).select2({
             minimumInputLength: 2,
             maximumInputLength: 6,
             multiple: true,
-            query: function(options) {
-                var term = options.term;
-                var tokens = thisId.split('_')
-                console.log(tokens[1]);
-                opencpu.r_fun_json(
-                    "gene_selection",
-                    {profile: tokens[1],
-                    symbols: term},
-                    function(data) {
-                        var selections = [];
-                        $(data).each(function(key, symbol) {
-                            selections.push({id: symbol, text: symbol});
-                        });
-                        options.callback({more: false, results: selections});
+            ajax: {
+                url: 'gene_selection',
+                dataType: 'json',
+                data: function(term, page) {
+                    return {
+                        profile: tokens[1],
+                        symbols: term
                     }
-                );
+                },
+                results: function(data, page) {
+                    var selections = []
+                    $(data).each(function(key, symbol) {
+                        selections.push({id: symbol, text: symbol});
+                    });
+                    return {more: false, results: selections};
+                }
             }
         });
     });
@@ -116,27 +120,34 @@ $(document).ready(function () {
             args.push(this.id + '|' + this.value);
           }
         });
+//        $("#correlation-plot-1").append(
+//            '<img id="theImg" src="chart/correlation?spp=' + 'abc|def' + '&symbols=' + 'sym1|sym2' + '">')
         for (i = 0; i < args.length; i++) {
           var tokens = args[i].split('|');
           var symbols_selected = $("#symbols_" + tokens[1]).val();
-          var jqxhr_correlation = $("#correlation-plot-" + (i + 1)).r_fun_plot(
-                            "plot_correlation2",
-                            {study_profile_platform: args[i],
-                             symbols: symbols_selected
-                            }
-                        ).fail(function(){
-                          alert("Failure: " + jqxhr_correlation.responseText)});
+          $("#correlation-plot-" + (i + 1)).append(
+              '<img src="chart/correlation?spp=' + args[i] + '&symbols=' + symbols_selected + '">')
+//          var jqxhr_correlation = $("#correlation-plot-" + (i + 1)).r_fun_plot(
+//                            "plot_correlation2",
+//                            {study_profile_platform: args[i],
+//                             symbols: symbols_selected
+//                            }
+//                        ).fail(function(){
+//                          alert("Failure: " + jqxhr_correlation.responseText)});
         }
+        sleep(2000);
         for (i = 0; i < args.length; i++) {
           var tokens = args[i].split('|');
           var symbols_selected = $("#symbols_" + tokens[1]).val();
-          var jqxhr_correlation = $("#heatmap-" + (i + 1)).r_fun_plot(
-                            "plot_heatmap",
-                            {study_profile_platform: args[i],
-                             symbols: symbols_selected
-                            }
-                        ).fail(function(){
-                          alert("Failure: " + jqxhr_correlation.responseText)});
+            $("#heatmap-" + (i + 1)).append(
+                '<img src="chart/heatmap?spp=' + args[i] + '&symbols=' + symbols_selected + '">')
+//          var jqxhr_correlation = $("#heatmap-" + (i + 1)).r_fun_plot(
+//                            "plot_heatmap",
+//                            {study_profile_platform: args[i],
+//                             symbols: symbols_selected
+//                            }
+//                        ).fail(function(){
+//                          alert("Failure: " + jqxhr_correlation.responseText)});
         }
         // Re-enable the button.
         $("#plot_btn").removeAttr("disabled");

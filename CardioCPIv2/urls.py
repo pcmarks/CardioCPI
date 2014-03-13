@@ -5,10 +5,14 @@ from django.conf.urls import patterns, include, url
 # admin.autodiscover()
 
 urlpatterns = patterns('',
-    # Examples:
-    url(r'^$', 'CardioCPIv2.views.home', name='home'),
-    url(r'^chart/simple.png','CardioCPIv2.views.simple', name='simple'),
 
+    url(r'^$', 'CardioCPIv2.views.home', name='home'),
+    url(r'^platform_selection$', 'CardioCPIv2.views.platform_selection', name='platform_selection'),
+    url(r'^gene_selection$', 'CardioCPIv2.views.gene_selection', name='gene_selection'),
+    url(r'^chart/correlation$', 'CardioCPIv2.views.correlation_chart', name='correlation_chart'),
+    url(r'^chart/heatmap$', 'CardioCPIv2.views.heatmap_chart', name='heatmap_chart'),
+
+    # Examples:
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
