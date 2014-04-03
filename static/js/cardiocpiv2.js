@@ -100,6 +100,7 @@ $(document).ready(function () {
         // Remove previous images if there were any
         $('#heatmaps').empty();
         $('#correlation-plots').empty();
+        $('#t_tests').empty();
         
         if ($('#combined-plot').prop("checked")) {
           plot_combined();
@@ -120,35 +121,26 @@ $(document).ready(function () {
             args.push(this.id + '|' + this.value);
           }
         });
-//        $("#correlation-plot-1").append(
-//            '<img id="theImg" src="chart/correlation?spp=' + 'abc|def' + '&symbols=' + 'sym1|sym2' + '">')
         for (i = 0; i < args.length; i++) {
           var tokens = args[i].split('|');
           var symbols_selected = $("#symbols_" + tokens[1]).val();
           $("#correlation-plot-" + (i + 1)).append(
               '<img src="chart/correlation?spp=' + args[i] + '&symbols=' + symbols_selected + '">')
-//          var jqxhr_correlation = $("#correlation-plot-" + (i + 1)).r_fun_plot(
-//                            "plot_correlation2",
-//                            {study_profile_platform: args[i],
-//                             symbols: symbols_selected
-//                            }
-//                        ).fail(function(){
-//                          alert("Failure: " + jqxhr_correlation.responseText)});
         }
-        sleep(2000);
+        // TODO: Delay for four seconds. This may or may not allow both plots to be drawn without one
+        // interfering with the other.
+        // Could be removed possibly if mod_wsgi and daemon mode are used.
+        sleep(4000);
         for (i = 0; i < args.length; i++) {
           var tokens = args[i].split('|');
           var symbols_selected = $("#symbols_" + tokens[1]).val();
             $("#heatmap-" + (i + 1)).append(
                 '<img src="chart/heatmap?spp=' + args[i] + '&symbols=' + symbols_selected + '">')
-//          var jqxhr_correlation = $("#heatmap-" + (i + 1)).r_fun_plot(
-//                            "plot_heatmap",
-//                            {study_profile_platform: args[i],
-//                             symbols: symbols_selected
-//                            }
-//                        ).fail(function(){
-//                          alert("Failure: " + jqxhr_correlation.responseText)});
         }
+        // TODO: Another sleep that could be removed
+        sleep(4000)
+        $("#t_tests").append('<img src="chart/t_tests?spp=' + args[0] + '">')
+
         // Re-enable the button.
         $("#plot_btn").removeAttr("disabled");
     });
@@ -173,22 +165,36 @@ $(document).ready(function () {
         $("[id^='symbols']").each(function() {
           symbols_selected.push(this.value);
         })
+        $("#correlation-plot-1").append(
+            '<img src="chart/combined_correlation?spp=' + args + '&symbols=' + symbols_selected + '">'
+        )
+//        var jqxhr_correlation = $("#correlation-plot-1").r_fun_plot(
+//                          "plot_combined_correlation2",
+//                          {study_profile_platform_symbols: args,
+//                           symbols: symbols_selected
+//                          }
+//                      ).fail(function(){
+//                        alert("Failure: " + jqxhr_correlation.responseText)});
 
-        var jqxhr_correlation = $("#correlation-plot-1").r_fun_plot(
-                          "plot_combined_correlation2",
-                          {study_profile_platform_symbols: args,
-                           symbols: symbols_selected
-                          }
-                      ).fail(function(){
-                        alert("Failure: " + jqxhr_correlation.responseText)});
-                        
-        var jqxhr_correlation = $("#heatmap-1").r_fun_plot(
-                          "plot_combined_heatmap",
-                          {study_profile_platform_symbols: args,
-                           symbols: symbols_selected
-                          }
-                      ).fail(function(){
-                        alert("Failure: " + jqxhr_correlation.responseText)});
+        $("#heatmap-1").append(
+            '<img src="chart/combined_heatmap?spp=' + args + '&symbols=' + symbols_selected + '">'
+        )
+//        var jqxhr_correlation = $("#heatmap-1").r_fun_plot(
+//                          "plot_combined_heatmap",
+//                          {study_profile_platform_symbols: args,
+//                           symbols: symbols_selected
+//                          }
+//                      ).fail(function(){
+//                        alert("Failure: " + jqxhr_correlation.responseText)});
     };
 
 });
+//"plot_combined_heatmap",
+//                          {study_profile_platform_symbols: args,
+//                           symbols: symbols_selected
+//                          }
+//                      ).fail(function(){
+//                        alert("Failure: " + jqxhr_correlation.responseText)});
+//    };
+//
+//});

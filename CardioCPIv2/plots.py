@@ -1,31 +1,31 @@
 __author__ = 'pcmarks'
 
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 
 import numpy as np
 import scipy.cluster.hierarchy as sch
 from scipy.spatial.distance import pdist
 import matplotlib.gridspec as gridspec
-import matplotlib.pyplot as plt
 from scipy.stats import spearmanr
-from matplotlib import rcParams, colors
-from numpy import reshape, arange
+from matplotlib import rcParams, colors, cm
+from numpy import reshape, arange, abs
 
 
 def correlation_plot(expr_values, study, platform, sample_ids, symbols):
     """
     """
     sample_count = len(sample_ids)
-    a_matrix = reshape(expr_values, (sample_count, len(expr_values) / sample_count))
+    # a_matrix = reshape(expr_values, (sample_count, len(expr_values) / sample_count))
 
-    rho, pval = spearmanr(a_matrix)
+    rho, pval = spearmanr(expr_values)
 
-    rcParams.update({'figure.autolayout': True})
+    # rcParams.update({'figure.autolayout': True})
     fig, ax = plt.subplots()
+    #fig = Figure()
+    ax = fig.add_subplot(111)
     fig.patch.set_facecolor('white')
-    # heatmap = ax.pcolor(rho, cmap=plt.cm.Blues)
-    heatmap = ax.pcolor(rho)
+    heatmap = ax.pcolor(rho, cmap=plt.cm.Blues)
+    # heatmap = ax.pcolor(rho)
     ax.set_yticks(arange(rho.shape[0])+0.5, minor=False)
     ax.set_xticks(arange(rho.shape[0])+0.5, minor=False)
     ax.set_yticklabels(symbols, minor=False, size='small')
@@ -37,7 +37,7 @@ def correlation_plot(expr_values, study, platform, sample_ids, symbols):
     return fig
 
 
-def heatmap(expr_values, study, platform, sample_ids, symbols):
+def heatmap(expr_values, study, platform, sample_ids, symbols, combined):
     """
     Create a heatmap with row and column dendrograms for the array of expression values. The expression
     values are normalized before clustering is performed.
@@ -53,6 +53,7 @@ def heatmap(expr_values, study, platform, sample_ids, symbols):
     :param platform:
     :param sample_ids:
     :param symbols:
+    :param combined: Boolean, is this a combined heatmap?
     """
     symbols = np.array(symbols)
     sample_ids = np.array(sample_ids)
@@ -76,7 +77,10 @@ def heatmap(expr_values, study, platform, sample_ids, symbols):
     #   Area [2,0] = row dendrogram
     #   Area [2,1] = the heatmap
     #   Area [1,2] = the colorbar legend
+
     fig = plt.figure()
+    # fig = Figure()
+    fig.set_tight_layout(True)
     fig.patch.set_facecolor('white')
     heatmap_GS = gridspec.GridSpec(3, 2, wspace=0.0, hspace=0.0, width_ratios=[0.25, 1],
                                     height_ratios=[0.05, 0.25, 1])
@@ -106,7 +110,7 @@ def heatmap(expr_values, study, platform, sample_ids, symbols):
     heat_map_axis = fig.add_subplot(heatmap_GS[2,1])
     image = heat_map_axis.matshow(expr_values_transposed, aspect='auto', origin='lower',
                                 #  cmap=RedBlackGreen())
-                                  cmap=plt.cm.BrBG)
+                                  cmap=cm.BrBG)
     clean_axis(heat_map_axis)
 
     # Prepare the heatmap row labels based on the gene symbols
@@ -138,8 +142,13 @@ def heatmap(expr_values, study, platform, sample_ids, symbols):
     # "Tighten" up the whole figure, separating the sub plots by horizontal and vertical spaces
     # Add a title - placed at the very top
     heatmap_GS.tight_layout(fig, h_pad=0.1, w_pad=0.5)
-    title = "Study: %s Profile: %s" % (study, platform,)
-    fig.suptitle(title)
+
+    #TODO Make pretty titles.
+    # if combined:
+    #     title = "Studies: %s %s Profiles: %s %s" % (study[0], study[1], platform[0], platform[1])
+    # else:
+    #     title = "Study: %s Profile: %s" % (study, platform,)
+    # fig.suptitle(title)
 
     return fig
 
@@ -163,3 +172,11 @@ def RedBlackGreen():
 
     my_cmap = colors.LinearSegmentedColormap('my_colormap',cdict,256)
     return my_cmap
+
+def t_test_histogram(sorted_p_values, no_of_values):
+
+    figure = plt.figure()
+    a_plot = sorted_p_values[:no_of_values].plot(kind='bar')
+    figure.add_subplot(a_plot)
+
+    return figure
