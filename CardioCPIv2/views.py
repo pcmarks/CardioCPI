@@ -15,9 +15,6 @@ import plots
 import geo_data
 
 
-GEO_SERVER = settings.GEO_SERVER        # E,G, 'http://mri-deux.mmc.org:8082'
-
-
 def home(request):
     """
 
@@ -105,26 +102,6 @@ def combined_correlation_chart(request):
     canvas.print_png(response)
 
     return response
-
-
-def get_profile_data(study, profile, platform, symbols, combined):
-    """
-
-    :param study:
-    :param profile:
-    :param platform:
-    :param symbols:
-    :return:
-    """
-    if combined:
-        path = '/'.join(['/geo', study, profile, platform, 'combined-expressions'])
-    else:
-        path = '/'.join(['/geo', study, profile, platform, 'expressions'])
-
-    payload = {'genes': symbols}
-    r = requests.get(GEO_SERVER + path, params=payload)
-    data = r.json()
-    return data
 
 
 def heatmap_chart(request):
@@ -281,12 +258,17 @@ def t_tests(request):
 
     no_of_values = 40
     p_values_series.sort(ascending=True)
+    print "P-values (sorted)"
     print p_values_series[:25]
+    print 'Bonferroni p-values'
+    print bonferroni_p_values[:25]
+    print 'FDF p-values'
+    print fdr_p_values[:25]
 
-    fig = plots.t_test_histogram(p_values_series, no_of_values)
+    # fig = plots.t_test_histogram(p_values_series, no_of_values)
 
-    canvas = FigureCanvas(fig)
-    response = HttpResponse(content_type='image/png')
-    canvas.print_png(response)
-
+    # canvas = FigureCanvas(fig)
+    # response = HttpResponse(content_type='image/png')
+    # canvas.print_png(response)
+    response = HttpResponse("meh?")
     return response
