@@ -7,27 +7,28 @@ import scipy.cluster.hierarchy as sch
 from scipy.spatial.distance import pdist
 import matplotlib.gridspec as gridspec
 from scipy.stats import spearmanr
-from matplotlib import rcParams, colors, cm
-from numpy import reshape, arange, abs
+from matplotlib import colors, cm
+from numpy import arange
 
 
 def correlation_plot(expr_values, study, platform, sample_ids, symbols):
     """
-    """
-    sample_count = len(sample_ids)
-    # a_matrix = reshape(expr_values, (sample_count, len(expr_values) / sample_count))
 
+    :param expr_values:
+    :param study:
+    :param platform:
+    :param sample_ids:
+    :param symbols:
+    """
     rho, pval = spearmanr(expr_values)
 
-    # rcParams.update({'figure.autolayout': True})
     fig, ax = plt.subplots()
     #fig = Figure()
     ax = fig.add_subplot(111)
     fig.patch.set_facecolor('white')
     heatmap = ax.pcolor(rho, cmap=plt.cm.Blues)
-    # heatmap = ax.pcolor(rho)
-    ax.set_yticks(arange(rho.shape[0])+0.5, minor=False)
-    ax.set_xticks(arange(rho.shape[0])+0.5, minor=False)
+    ax.set_yticks(arange(rho.shape[0]) + 0.5, minor=False)
+    ax.set_xticks(arange(rho.shape[0]) + 0.5, minor=False)
     ax.set_yticklabels(symbols, minor=False, size='small')
     ax.set_xticklabels(symbols, minor=False, size='small')
     plt.colorbar(heatmap)
@@ -83,13 +84,13 @@ def heatmap(expr_values, study, platform, sample_ids, symbols, combined):
     fig.set_tight_layout(True)
     fig.patch.set_facecolor('white')
     heatmap_GS = gridspec.GridSpec(3, 2, wspace=0.0, hspace=0.0, width_ratios=[0.25, 1],
-                                    height_ratios=[0.05, 0.25, 1])
+                                   height_ratios=[0.05, 0.25, 1])
 
     # Perform a cluster analysis on column distances using the complete method.
     # Create and draw a dendrogram
     # Save the reordering values ('leaves') for the columns
     column_cluster = sch.complete(column_distances)
-    column_dendrogram_axis = fig.add_subplot(heatmap_GS[1,1])
+    column_dendrogram_axis = fig.add_subplot(heatmap_GS[1, 1])
     column_dendrogram = sch.dendrogram(column_cluster, orientation='top')
     column_indexes = column_dendrogram['leaves']
     clean_axis(column_dendrogram_axis)
@@ -98,7 +99,7 @@ def heatmap(expr_values, study, platform, sample_ids, symbols, combined):
     # Create and draw a dendrogram.
     # Save the reordering values ('leaves') for the rows
     row_cluster = sch.complete(row_distances)
-    row_dendrogram_axis = fig.add_subplot(heatmap_GS[2,0])
+    row_dendrogram_axis = fig.add_subplot(heatmap_GS[2, 0])
     row_dendrogram = sch.dendrogram(row_cluster, orientation='right')
     row_indexes = row_dendrogram['leaves']
     clean_axis(row_dendrogram_axis)
@@ -107,9 +108,9 @@ def heatmap(expr_values, study, platform, sample_ids, symbols, combined):
     # Create and draw the heatmap. The image itself is used to create the colorbar (below)
     expr_values_transposed = expr_values_transposed[:, column_indexes]
     expr_values_transposed = expr_values_transposed[row_indexes, :]
-    heat_map_axis = fig.add_subplot(heatmap_GS[2,1])
+    heat_map_axis = fig.add_subplot(heatmap_GS[2, 1])
     image = heat_map_axis.matshow(expr_values_transposed, aspect='auto', origin='lower',
-                                #  cmap=RedBlackGreen())
+                                  #  cmap=RedBlackGreen())
                                   cmap=cm.BrBG)
     clean_axis(heat_map_axis)
 
@@ -128,9 +129,9 @@ def heatmap(expr_values, study, platform, sample_ids, symbols, combined):
 
     # Create and draw a scale colorbar. It is based on the values used in the
     # heatmap image.
-    scale_cbGSSS = gridspec.GridSpecFromSubplotSpec(1,2,subplot_spec=heatmap_GS[1,0],
+    scale_cbGSSS = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=heatmap_GS[1, 0],
                                                     wspace=0.0, hspace=0.0)
-    scale_cb_axis =fig.add_subplot(scale_cbGSSS[0,0])
+    scale_cb_axis = fig.add_subplot(scale_cbGSSS[0, 0])
     colorbar = fig.colorbar(image, scale_cb_axis)
     colorbar.ax.yaxis.set_ticks_position('left')
     colorbar.ax.yaxis.set_label_position('left')
@@ -152,29 +153,45 @@ def heatmap(expr_values, study, platform, sample_ids, symbols, combined):
 
     return fig
 
+
 def clean_axis(axis):
-    """Remove ticks, tick labels from axis"""
+    """Remove ticks, tick labels from axis
+
+    :param axis:
+    """
     axis.set_xticks([])
     axis.set_yticks([])
 
+
 def RedBlackGreen():
-    cdict = {'red':   ((0.0, 0.0, 0.0),
-                       (0.5, 0.0, 0.1),
-                       (1.0, 1.0, 1.0)),
+    """
+
+
+    :return:
+    """
+    cdict = {'red': ((0.0, 0.0, 0.0),
+                     (0.5, 0.0, 0.1),
+                     (1.0, 1.0, 1.0)),
 
              'blue': ((0.0, 0.0, 0.0),
                       (1.0, 0.0, 0.0)),
 
-             'green':  ((0.0, 0.0, 1.0),
-                        (0.5, 0.1, 0.0),
-                        (1.0, 0.0, 0.0))
+             'green': ((0.0, 0.0, 1.0),
+                       (0.5, 0.1, 0.0),
+                       (1.0, 0.0, 0.0))
     }
 
-    my_cmap = colors.LinearSegmentedColormap('my_colormap',cdict,256)
+    my_cmap = colors.LinearSegmentedColormap('my_colormap', cdict, 256)
     return my_cmap
 
-def t_test_histogram(sorted_p_values, no_of_values):
 
+def t_test_histogram(sorted_p_values, no_of_values):
+    """
+
+    :param sorted_p_values:
+    :param no_of_values:
+    :return:
+    """
     figure = plt.figure()
     a_plot = sorted_p_values[:no_of_values].plot(kind='bar')
     figure.add_subplot(a_plot)

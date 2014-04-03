@@ -9,10 +9,6 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-# URL of GEO data server - used in views
-# GEO_SERVER = 'http://mri-deux.mmc.org:8082'
-GEO_SERVER = 'http://localhost:8082'
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.

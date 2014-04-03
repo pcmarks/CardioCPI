@@ -8,15 +8,6 @@ from json import JSONDecoder, JSONEncoder
 import os
 
 #############################################################################################
-# Replace the following two values with what is appropriate for your setup.
-#
-#HOST_NAME = 'mri-deux.mmc.org'
-#PORT_NUMBER = 8082
-HOST_NAME = 'localhost'
-PORT_NUMBER = 8082
-#############################################################################################
-
-#############################################################################################
 # Replace the following two values with the directory path of the leveldb data stores: one for
 # the profile (expression) values and one for the clinical data
 #
@@ -63,18 +54,27 @@ genes_code = '55'
 studies_code = '56'
 
 # A list of request values for clinical data and the associated key value code.
-#
 clinical_codes = {'vital_status': vital_status_code, 'days_to_death': days_to_death_code, \
                   'days_to_birth': days_to_birth_code, 'days_to_last_followup': days_to_last_followup_code}
 
 # A cache of gene symbols organized by profile class, e.g., Expression-Genes, Expression-miRNA, etc.
 global gene_symbols_cache
 gene_symbols_cache = {}
+
 # Platforms that comprise the current cache for a profile class.
 global profile_class_platforms
 profile_class_platforms = {}
 
+
 def switch_platform(study, profile, new_platform, old_platform):
+    """
+
+    :param study:
+    :param profile:
+    :param new_platform:
+    :param old_platform:
+    :return:
+    """
     global gene_symbols_cache
 
     new_key = '|'.join([study, profile, new_platform])
@@ -88,7 +88,7 @@ def switch_platform(study, profile, new_platform, old_platform):
         if old_key in profile_class_platforms:
             del profile_class_platforms[old_key]
         profile_class_platforms[new_key] = {}
-    # Rebuild the caches
+        # Rebuild the caches
     gene_symbols_cache = {}
     for profile_platform in profile_class_platforms:
         parts = profile_platform.split('|')
@@ -96,11 +96,8 @@ def switch_platform(study, profile, new_platform, old_platform):
         profile = parts[1]
         platform = parts[2]
         key = '|'.join(
-            [study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, platform, genes_code ])
-        # print "KEY", key
-        #  key = '01|prad|02|miRNASeq|03|BCGSC__IlluminaHiSeq_miRNASeq|55'
+            [study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, platform, genes_code])
         gene_symbols = profile_db.Get(key)
-        # print "# symbols:", len(gene_symbols)
         # There might be duplicate sample ids in the list - remove them
         gene_symbol_list = JSONDecoder().decode(gene_symbols)
         if profile in gene_symbols_cache:
@@ -109,7 +106,14 @@ def switch_platform(study, profile, new_platform, old_platform):
             gene_symbols_cache[profile] = set(gene_symbol_list)
     return
 
+
 def match_symbols(profile, symbols):
+    """
+
+    :param profile:
+    :param symbols:
+    :return:
+    """
     global gene_symbols_cache
 
     gene_symbol_list = None
@@ -126,7 +130,17 @@ def match_symbols(profile, symbols):
     gene_symbols = JSONEncoder().encode(gene_symbol_list)
     return gene_symbols
 
+
 def get_profile_data(study, profile, platform, genes, combined):
+    """
+
+    :param study:
+    :param profile:
+    :param platform:
+    :param genes:
+    :param combined:
+    :return:
+    """
     sample_attributes_list = []
     expressionValues = []
     try:
@@ -140,7 +154,7 @@ def get_profile_data(study, profile, platform, genes, combined):
             try:
                 attributes = profile_db.Get('|'.join( \
                     [study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, platform, \
-                     SAMPLE_ID_CODE, sample_id, SAMPLE_ATTRIBUTES_CODE ]))
+                     SAMPLE_ID_CODE, sample_id, SAMPLE_ATTRIBUTES_CODE]))
             except KeyError:
                 continue
 
@@ -161,14 +175,22 @@ def get_profile_data(study, profile, platform, genes, combined):
                         pass
                 except KeyError:
                     expressionValues.append(None)
-            #                                expr_value = None
+                    #                                expr_value = None
     except KeyError:
         expressionValues = None
     result = {'values': expressionValues, 'sample_count': len(accepted_sample_id_list), \
-             'sample_ids': accepted_sample_id_list, 'sample_attributes': sample_attributes_list}
+              'sample_ids': accepted_sample_id_list, 'sample_attributes': sample_attributes_list}
     return result
 
+
 def get_sample_ids(study, profile, platform):
+    """
+
+    :param study:
+    :param profile:
+    :param platform:
+    :return:
+    """
     key = '|'.join([study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, platform, sample_ids_code])
     sample_ids = profile_db.Get(key)
     # There may be duplicates in the sample id list - get rid of them
@@ -176,25 +198,52 @@ def get_sample_ids(study, profile, platform):
     sample_id_list = list(set(sample_id_list))
     return sample_id_list
 
+
 def get_all_gene_symbols(study, profile, platform):
+    """
+
+    :param study:
+    :param profile:
+    :param platform:
+    :return:
+    """
     key = '|'.join([study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, platform, genes_code])
     genes = profile_db.Get(key)
     return JSONDecoder().decode(genes)
 
+
 def get_gene_expression_value(study, profile, platform, sample_id, gene_symbol):
+    """
+
+    :param study:
+    :param profile:
+    :param platform:
+    :param sample_id:
+    :param gene_symbol:
+    :return:
+    """
     try:
         key = '|'.join([study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, platform, \
-                    SAMPLE_ID_CODE, sample_id, GENE_CODE, gene_symbol])
+                        SAMPLE_ID_CODE, sample_id, GENE_CODE, gene_symbol])
         expr_value = profile_db.Get(key)
     except KeyError:
         expr_value = None
     return expr_value
 
+
 def get_sample_attributes(study, profile, platform, sample_id):
+    """
+
+    :param study:
+    :param profile:
+    :param platform:
+    :param sample_id:
+    :return:
+    """
     attributes = None
     try:
-        key = '|'.join([study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, platform,\
-                    SAMPLE_ID_CODE, sample_id, SAMPLE_ATTRIBUTES_CODE])
+        key = '|'.join([study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, platform, \
+                        SAMPLE_ID_CODE, sample_id, SAMPLE_ATTRIBUTES_CODE])
         attributes = profile_db.Get(key)
     except KeyError:
         pass
