@@ -20,18 +20,22 @@ def correlation_plot(expr_values, study, platform, sample_ids, symbols):
     :param sample_ids:
     :param symbols:
     """
-    rho, pval = spearmanr(expr_values)
+    rho, p_value = spearmanr(expr_values)
 
     fig, ax = plt.subplots()
     #fig = Figure()
     ax = fig.add_subplot(111)
     fig.patch.set_facecolor('white')
-    heatmap = ax.pcolor(rho, cmap=plt.cm.Blues)
+    correlation = ax.pcolor(rho, cmap=plt.cm.Blues)
+    genes = [symbol.split('_')[0] for symbol in symbols]
     ax.set_yticks(arange(rho.shape[0]) + 0.5, minor=False)
     ax.set_xticks(arange(rho.shape[0]) + 0.5, minor=False)
-    ax.set_yticklabels(symbols, minor=False, size='small')
-    ax.set_xticklabels(symbols, minor=False, size='small')
-    plt.colorbar(heatmap)
+    ax.set_yticklabels(genes, minor=False, size='small')
+    ax.set_xticklabels(genes, minor=False, size='small')
+    x_labels = ax.get_xticklabels()
+    for label in x_labels:
+        label.set_rotation(90)
+    plt.colorbar(correlation)
     title = "Study: %s Platform: %s" % (study, platform,)
     fig.suptitle(title, y=0.99, fontsize=9)
 
@@ -115,9 +119,10 @@ def heatmap(expr_values, study, platform, sample_ids, symbols, combined):
     clean_axis(heat_map_axis)
 
     # Prepare the heatmap row labels based on the gene symbols
-    heat_map_axis.set_yticks(np.arange(symbols.shape[0]))
+    genes = np.array([symbol.split('_')[0] for symbol in symbols])
+    heat_map_axis.set_yticks(np.arange(len(genes)))
     heat_map_axis.yaxis.set_ticks_position('right')
-    heat_map_axis.set_yticklabels(symbols[row_indexes])
+    heat_map_axis.set_yticklabels(genes[row_indexes])
 
     # Prepare the heatmap column labels based on the sample ids
     # Rotate them 90 degrees
