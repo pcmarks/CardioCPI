@@ -4,12 +4,10 @@ import json
 
 from django.http import HttpResponse
 from django.shortcuts import render
-from django.conf import settings
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from numpy import array, reshape, zeros
 from pandas import DataFrame, Series
 from scipy.stats import ttest_ind
-import requests
 
 import plots
 import geo_data

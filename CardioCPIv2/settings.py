@@ -1,5 +1,7 @@
 # Django settings for CardioCPIv2 project.
 
+import os
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -69,7 +71,10 @@ STATIC_URL = '/static/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
-    "/home/pcmarks/Work/MMCRI/duarte/GEO/software/IdeaProjects/CardioCPIv2/static",
+    os.path.join(
+        os.path.dirname(__file__),
+        'static',
+    ),
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
