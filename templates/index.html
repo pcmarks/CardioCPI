@@ -115,47 +115,34 @@
                         </td>
                     </tr>
                     <tr>
+                        <td>And/or, run T-Tests and select symbols</td>
                         <td>
-
+                            <div class="input-group">
+                                <input id="t-test-btn" name="t-test-btn"
+                                       type="button" class="btn btn-info pull-left" value="Run T-Test">
+                            </div>
                         </td>
-                        <td id="count_Expression-Genes"><p></p>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Then,
                         </td>
-                        <td id="count_Expression-miRNA_count"><p></p>
+                        <td>
+                            <div class="input-group">
+                                <input id="plot-btn" name="plot-btn" type="button" class="btn btn-info" value="Plot"/>
+                            </div>
+                            <label class="checkbox">
+                                <input type="checkbox" id="combined-plot"> Combined plot.
+                            </label>
                         </td>
+                        <td></td>
                     </tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-    <div class="row">
-        <div class="span1"></div>
-        <div class="span1">
-            <div class="input-group">
-                <input id="plot-btn" name="plot-btn" type="button" class="btn btn-info pull-left" value="Plot"/>
-            </div>
-        </div>
-        <div class="span2">
-            <label class="checkbox">
-                <input type="checkbox" id="combined-plot"> Combined plot.
-            </label>
-        </div>
-        <div class="span2">
-            <div class="input-group">
-                <input id="t-test-btn" name="t-test-btn" type="button" class="btn btn-info pull-right" value="Run T-Test"/>
-            </div>
-        </div>
-        <div class="span6">
-{#            <label class="button">Heatmap ordering:#}
-{#                <div class="btn-group" data-toggle="buttons">#}
-{#                    <button type="button" data-toggle="button" class="btn btn-primary">None</button>#}
-{#                    <button type="button" data-toggle="button" class="btn btn-primary">Row</button>#}
-{#                    <button type="button" data-toggle="button" class="btn btn-primary">Col.</button>#}
-{#            </label>#}
-        </div>
-    </div>
-    </div>
-    <div class="row"><div class="span12"></div> </div>
     <div class="row">
         <div class="tabbable span12">
             <ul class="nav nav-tabs" id="myTab">
