@@ -3,6 +3,7 @@ __author__ = 'pcmarks'
 import json
 
 from django.http import HttpResponse
+from django.template.loader import render_to_string
 from django.shortcuts import render
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from numpy import array, reshape, zeros
@@ -256,17 +257,31 @@ def t_tests(request):
 
     no_of_values = 40
     p_values_series.sort(ascending=True)
-    print "P-values (sorted)"
-    print p_values_series[:25]
-    print 'Bonferroni p-values'
-    print bonferroni_p_values[:25]
-    print 'FDF p-values'
-    print fdr_p_values[:25]
+    fdr_p_values.sort(ascending=True)
 
-    # fig = plots.t_test_histogram(p_values_series, no_of_values)
+    # display_values = [(p_values_series.index[i].split('_')[0], p_values_series[i]) for i in range(10)]
+    display_p_values = [(p_values_series.index[i], p_values_series[i]) for i in range(10)]
+    display_fdr_values = [(fdr_p_values.index[i], fdr_p_values[i]) for i in range(10)]
+    response = render_to_string('t-test.html',
+                                {"display_p_values": display_p_values,
+                                 "display_fdr_values": display_fdr_values})
 
-    # canvas = FigureCanvas(fig)
-    # response = HttpResponse(content_type='image/png')
-    # canvas.print_png(response)
-    response = HttpResponse("meh?")
-    return response
+    # response = '<div class="row"><div class="span4"><table id="study-table" class="table table-striped table-condensed table-bordered">'
+    # for i in range(10):
+    #     symbol = p_values_series.index[i].split('_')[0]
+    #     response += '<tr><td>%s</td><td>%s</td></tr>' % (symbol, p_values_series[i],)
+    # response += "</table></div></div"
+    # # print "P-values (sorted)"
+    # # print p_values_series[:25]
+    # # print 'Bonferroni p-values'
+    # # print bonferroni_p_values[:25]
+    # # print 'FDF p-values'
+    # # print fdr_p_values[:25]
+    # #
+    # # # fig = plots.t_test_histogram(p_values_series, no_of_values)
+    # #
+    # # # canvas = FigureCanvas(fig)
+    # # # response = HttpResponse(content_type='image/png')
+    # # # canvas.print_png(response)
+    # # response = HttpResponse("meh?")
+    return HttpResponse(response)

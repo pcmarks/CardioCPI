@@ -21,7 +21,7 @@ urlpatterns = patterns('',
         name = 'combined_correlation_chart'),
     url(r'^chart/combined_heatmap$', 'CardioCPIv2.views.combined_heatmap_chart',
         name = 'combined_heatmap_chart'),
-    url(r'^chart/t_tests$', 'CardioCPIv2.views.t_tests',
+    url(r'^t_tests$', 'CardioCPIv2.views.t_tests',
         name = 't_tests'),
 
     # Examples:

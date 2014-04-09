@@ -25,6 +25,26 @@ var sleep = function(milliseconds) {
         }
     }
 }
+/*
+ The function to execute when a t-test table entry checkbox is checked/unchecked
+ */
+var p_value_checked = function(the_checkbox){
+    var gene_symbol = the_checkbox.id.split('-')[1];
+    var current_list = $('#symbols_Expression-Genes').val().split(',');
+    if (the_checkbox.checked) {
+        current_list.push(gene_symbol);
+        var new_list = current_list.join(',');
+        $('#symbols_Expression-Genes').val(new_list).trigger("change");
+    } else {
+        var ix = current_list.indexOf(gene_symbol)
+        if (ix >= 0) {
+            current_list.splice(ix,1)
+        }
+        var new_list = current_list.join(',')
+        $('#symbols_Expression-Genes').val(new_list).trigger("change");
+    }
+};
+
 $(document).ready(function () {
   
   $('.btn-group').button();
@@ -77,8 +97,35 @@ $(document).ready(function () {
                     });
                     return {more: false, results: selections};
                 }
+            },
+            initSelection : function (element, callback) {
+                var data = [];
+                $(element.val().split(",")).each(function () {
+                    data.push({id: this, text: this});
+                });
+                callback(data);
             }
         });
+    });
+
+    /*
+    Attach a function to the t-test button.
+    */
+    $('#t-test-btn').click(function(e) {
+        // Disable the button whilst processing
+        $('#t-test-btn').attr('disabled', 'disabled')
+
+        // Execute an AJAX request for the t-test tables
+        var args = [];
+        $('select').each(function() {
+            if (this.value != 'none') {
+                args.push(this.id + '|' + this.value);
+            }
+        });
+        $('#t_tests').load('t_tests?spp=' + args[0]);
+
+        // Re-enable the button
+        $("#t-test-btn").removeAttr("disabled");
     });
 
     /*
@@ -100,8 +147,7 @@ $(document).ready(function () {
         // Remove previous images if there were any
         $('#heatmaps').empty();
         $('#correlation-plots').empty();
-        $('#t_tests').empty();
-        
+
         if ($('#combined-plot').prop("checked")) {
           plot_combined();
           // Re-enable the button.
@@ -137,9 +183,6 @@ $(document).ready(function () {
             $("#heatmap-" + (i + 1)).append(
                 '<img src="chart/heatmap?spp=' + args[i] + '&symbols=' + symbols_selected + '">')
         }
-        // TODO: Another sleep that could be removed
-        sleep(4000)
-        $("#t_tests").append('<img src="chart/t_tests?spp=' + args[0] + '">')
 
         // Re-enable the button.
         $("#plot_btn").removeAttr("disabled");
