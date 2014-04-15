@@ -154,6 +154,11 @@ def combined_heatmap_chart(request):
 
 
 def match_and_merge(spp_arg):
+    """
+
+    :param spp_arg:
+    :return:
+    """
     spps = spp_arg.split(',')
     profile_data_list = []
     co_samples_list = []
@@ -168,6 +173,13 @@ def match_and_merge(spp_arg):
         co_samples_list.append([json.loads(co_sample) for co_sample in profile_data['sample_attributes']])
         profile_data_list.append(profile_data)
 
+    # From these results we need to find only those samples that have co-samples
+    filter0 =  []
+    for index1, attribute in enumerate(co_samples_list[0]):
+        co_sample_id = attribute['co_sample']
+        if co_sample_id != '':
+            filter0.append(index1)
+
     an_array0 = array(profile_data_list[0]['values'])
     sample_count0 = profile_data_list[0]['sample_count']
     a_matrix0 = reshape(an_array0, (sample_count0, len(an_array0) / sample_count0))
@@ -179,18 +191,21 @@ def match_and_merge(spp_arg):
     a_matrix1 = reshape(an_array1, (sample_count1, len(an_array1) / sample_count1))
     col_labels1 = symbols_list[1]
 
-    result_matrix = zeros((sample_count0, len(col_labels0) + len(col_labels1)))
+    result_matrix = zeros((len(filter0), len(col_labels0) + len(col_labels1)))
     row_labels = []
-    for index1, attribute in enumerate(co_samples_list[0]):
+    result_index = 0
+    for index in filter0:
+        attribute = (co_samples_list[0])[index]
         control = attribute['control']
         co_sample_id = attribute['co_sample']
         if control:
             row_labels.append('C-' + co_sample_id)
         else:
-            row_labels.append('D-' + co_sample_id)
+            row_labels.append(('D-' + co_sample_id))
         sample_index = profile_data_list[1]['sample_ids'].index(co_sample_id)
-        result_matrix[index1, 0:no_of_symbols0] = a_matrix0[index1]
-        result_matrix[index1, no_of_symbols0:] = a_matrix1[sample_index]
+        result_matrix[result_index, 0:no_of_symbols0] = a_matrix0[index]
+        result_matrix[result_index, no_of_symbols0:] = a_matrix1[sample_index]
+        result_index += 1
 
     col_labels0.extend(col_labels1)
 

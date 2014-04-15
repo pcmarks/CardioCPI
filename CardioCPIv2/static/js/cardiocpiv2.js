@@ -227,16 +227,17 @@ $(document).ready(function () {
           var symbols_selected = $("#symbols_" + tokens[1]).val();
           $("#correlation-plot-" + (i + 1)).append(
               '<img src="chart/correlation?spp=' + args[i] + '&symbols=' + symbols_selected + '">')
+            sleep(4000);
         }
         // TODO: Delay for four seconds. This may or may not allow both plots to be drawn without one
         // interfering with the other.
         // Could be removed possibly if mod_wsgi and daemon mode are used.
-        sleep(4000);
         for (i = 0; i < args.length; i++) {
           var tokens = args[i].split('|');
           var symbols_selected = $("#symbols_" + tokens[1]).val();
             $("#heatmap-" + (i + 1)).append(
                 '<img src="chart/heatmap?spp=' + args[i] + '&symbols=' + symbols_selected + '">')
+            sleep(4000);
         }
 
         // Re-enable the button.
@@ -245,8 +246,8 @@ $(document).ready(function () {
     
     plot_combined = function() {
         // Set aside  1 div for each plot
-        $("#heatmaps").append("<div id='heatmap-1'></div>");
-        $("#correlation-plots").append("<div id='correlation-plot-1'></div>")
+        $("#heatmaps").append("<div id='heatmap-1' class='plot'></div>");
+        $("#correlation-plots").append("<div id='correlation-plot-1' class='plot'></div>")
         var genes_selected = $("#symbols_Expression-Genes").val();
         var mirnas_selected = $("#symbols_Expression-miRNA").val();
         var args = [];
