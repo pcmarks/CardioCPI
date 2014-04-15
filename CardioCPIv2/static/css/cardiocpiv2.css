@@ -15,3 +15,7 @@ body {background-color: #fffacd;}
 #gene-entry-table td {
     width: 21em;
 }
+
+.plot {
+    margin: 20px;
+}

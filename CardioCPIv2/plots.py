@@ -1,5 +1,6 @@
 __author__ = 'pcmarks'
 
+# The following is necessary to prevent threading issues (warnings) with QtPixmap
 import matplotlib
 matplotlib.use('Agg')
 

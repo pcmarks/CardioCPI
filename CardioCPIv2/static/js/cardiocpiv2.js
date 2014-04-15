@@ -207,8 +207,12 @@ $(document).ready(function () {
         }
         // Set aside div's to hold all of the plots
         for (var i = 1; i <= no_of_studies; i++) {
-            $("#heatmaps").append("<div id='heatmap-" + i +"'> </div>");
-            $("#correlation-plots").append("<div id='correlation-plot-" + i +"'> </div>");
+            $("#heatmaps").append("<div id='heatmap-" +
+                                    i +
+                                    "' class='plot'> </div>");
+            $("#correlation-plots").append("<div id='correlation-plot-" +
+                                            i +
+                                            "' class='plot'> </div>");
         }
         var genes_selected = $("#symbols_Expression-Genes").val();
         var mirnas_selected = $("#symbols_Expression-miRNA").val();
