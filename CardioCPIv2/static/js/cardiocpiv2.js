@@ -25,12 +25,24 @@ var sleep = function(milliseconds) {
         }
     }
 }
+var p_values_select_all = function(){
+
+};
+
+var fdr_values_select_all = function(){
+
+};
+
 /*
  The function to execute when a t-test table entry checkbox is checked/unchecked
  */
 var p_value_checked = function(the_checkbox){
     var gene_symbol = the_checkbox.id.split('-')[1];
-    var current_list = $('#symbols_Expression-Genes').val().split(',');
+    var flattened_list = $('#symbols_Expression-Genes').val()
+    var current_list = []
+    if (flattened_list.length > 0) {
+        current_list = flattened_list.split(',')
+    }
     if (the_checkbox.checked) {
         current_list.push(gene_symbol);
         var new_list = current_list.join(',');
@@ -46,8 +58,67 @@ var p_value_checked = function(the_checkbox){
 };
 
 $(document).ready(function () {
-  
-  $('.btn-group').button();
+
+    $('#statistics-btn').click(function() {
+        var no_of_studies = $("input[id$='CB']").filter(":checked").length;
+        if (no_of_studies == 0) {
+            alert("You must choose at least one study and platform.")
+            return false;
+        }
+
+        // Execute an AJAX request for the statistics
+        var args = [];
+        $('select').each(function () {
+            if (this.value != 'none') {
+                args.push(this.id + '|' + this.value);
+            }
+        });
+        var show_top = $("#shot-top").val();
+        var p_value_cutoff = $("#p-value-cutoff").val();
+        var fdr_value_cutoff = $("#fdr-value-cutoff").val();
+        $('#statistics').load('statistics?spp=' + args[0]);
+    });
+
+    $('#t-test-collapsible').on('show', function (e) {
+
+        var no_of_studies = $("input[id$='CB']").filter(":checked").length;
+        if (no_of_studies == 0) {
+            alert("You must choose at least one study.")
+            return false;
+        }
+
+        // Execute an AJAX request for the t-test tables
+        var args = [];
+        $('select').each(function () {
+            if (this.value != 'none') {
+                args.push(this.id + '|' + this.value);
+            }
+        });
+        $('#t-test-values').load('t-tests?spp=' + args[0]);
+
+    });
+
+    $('#fdr-test-collapsible').on('show', function (e) {
+        var no_of_studies = $("input[id$='CB']").filter(":checked").length;
+        if (no_of_studies == 0) {
+            alert("You must choose at least one study.")
+            $("#plot_btn").removeAttr("disabled");
+            return false;
+        }
+        // Disable the button whilst processing
+        $('#t-test-btn').attr('disabled', 'disabled')
+
+        // Execute an AJAX request for the t-test tables
+        var args = [];
+        $('select').each(function () {
+            if (this.value != 'none') {
+                args.push(this.id + '|' + this.value);
+            }
+        });
+        $('#fdr-test-values').load('fdr-tests?spp=' + args[0]);
+    });
+
+    $('.btn-group').button();
 
   /*
    * Attach a function to the platform select elements. Selecting an element results in a 
@@ -106,26 +177,6 @@ $(document).ready(function () {
                 callback(data);
             }
         });
-    });
-
-    /*
-    Attach a function to the t-test button.
-    */
-    $('#t-test-btn').click(function(e) {
-        // Disable the button whilst processing
-        $('#t-test-btn').attr('disabled', 'disabled')
-
-        // Execute an AJAX request for the t-test tables
-        var args = [];
-        $('select').each(function() {
-            if (this.value != 'none') {
-                args.push(this.id + '|' + this.value);
-            }
-        });
-        $('#t_tests').load('t_tests?spp=' + args[0]);
-
-        // Re-enable the button
-        $("#t-test-btn").removeAttr("disabled");
     });
 
     /*

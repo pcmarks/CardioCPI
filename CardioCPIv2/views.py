@@ -202,7 +202,7 @@ def match_and_merge(spp_arg):
     return result_matrix, row_labels, col_labels0
 
 
-def t_tests(request):
+def statistics(request):
     # 1. Get all sample ids for given study, profile and platform
     # 2. Get all gene symbols for given study, profile and platform
     # 3. For each sample and for each gene symbol get expression value
@@ -254,34 +254,17 @@ def t_tests(request):
 
     bonferroni_p_values = p_values_series[reject_bonferroni]
     fdr_p_values = p_values_series[reject_fdr]
-
+    fdr_values_series = Series(pval_fdr, index=genes)
     no_of_values = 40
     p_values_series.sort(ascending=True)
-    fdr_p_values.sort(ascending=True)
+    fdr_values_series.sort(ascending=True)
 
     # display_values = [(p_values_series.index[i].split('_')[0], p_values_series[i]) for i in range(10)]
     display_p_values = [(p_values_series.index[i], p_values_series[i]) for i in range(10)]
-    display_fdr_values = [(fdr_p_values.index[i], fdr_p_values[i]) for i in range(10)]
-    response = render_to_string('t-test.html',
+    display_fdr_values = [(fdr_values_series.index[i], fdr_values_series[i]) for i in range(10)]
+    response = render_to_string('statistics.html',
                                 {"display_p_values": display_p_values,
                                  "display_fdr_values": display_fdr_values})
 
-    # response = '<div class="row"><div class="span4"><table id="study-table" class="table table-striped table-condensed table-bordered">'
-    # for i in range(10):
-    #     symbol = p_values_series.index[i].split('_')[0]
-    #     response += '<tr><td>%s</td><td>%s</td></tr>' % (symbol, p_values_series[i],)
-    # response += "</table></div></div"
-    # # print "P-values (sorted)"
-    # # print p_values_series[:25]
-    # # print 'Bonferroni p-values'
-    # # print bonferroni_p_values[:25]
-    # # print 'FDF p-values'
-    # # print fdr_p_values[:25]
-    # #
-    # # # fig = plots.t_test_histogram(p_values_series, no_of_values)
-    # #
-    # # # canvas = FigureCanvas(fig)
-    # # # response = HttpResponse(content_type='image/png')
-    # # # canvas.print_png(response)
-    # # response = HttpResponse("meh?")
     return HttpResponse(response)
+

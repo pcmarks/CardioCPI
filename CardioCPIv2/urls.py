@@ -21,8 +21,8 @@ urlpatterns = patterns('',
         name = 'combined_correlation_chart'),
     url(r'^chart/combined_heatmap$', 'CardioCPIv2.views.combined_heatmap_chart',
         name = 'combined_heatmap_chart'),
-    url(r'^t_tests$', 'CardioCPIv2.views.t_tests',
-        name = 't_tests'),
+    url(r'^statistics$', 'CardioCPIv2.views.statistics',
+        name = 'statistics'),
 
     # Examples:
     # Uncomment the admin/doc line below to enable admin documentation:

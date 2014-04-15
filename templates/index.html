@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html xmlns="http://www.w3.org/1999/html">
 <head>
     {% load staticfiles %}
     <title>MMCRI CardioCPI v2</title>
@@ -10,169 +10,171 @@
     <!-- CardioCPIv2 javascript -->
     <script src="{% static 'js/cardiocpiv2.js' %}"></script>
 
-    <link href="{%  static 'css/select2.css' %}" rel="stylesheet" media="screen">
+    <link href="{% static 'css/select2.css' %}" rel="stylesheet" media="screen">
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" media="screen">
     <!-- CardioCPIv2 styling -->
     <link href="{% static 'css/cardiocpiv2.css' %}" rel="stylesheet" media="screen">
 
 </head>
 <body>
-<form id="plot_form">
-    {% csrf_token %}
-    <div class="row">
-        <div class="span3">
-            <div class="row">
-                <div class="span3">
-                    <img src="{% static 'image/MMCRI_2.gif' %}"/>
-                </div>
+<div class="row">
+    <div class="span3">
+        <div class="row">
+            <div class="span3">
+                <img src="{% static 'image/MMCRI_2.gif' %}"/>
             </div>
         </div>
-        <div class="span9">
-            <div class="row">
-                <div class="span9">
-                    <h1></h1>
-                    <h1 class="header">CardioCPI </h1>
-                    <h4 class="header">Cross Platform Integration</h4>
-                    <h1></h1>
+    </div>
+    <div class="span9">
+        <div class="row">
+            <div class="span9">
+                <h1></h1>
+
+                <h1 class="header">CardioCPI </h1>
+                <h4 class="header">Cross Platform Integration</h4>
+
+                <h1></h1>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="span12">
+        <div id="studies">
+            <table id="study-table" class="table table-striped table-condensed table-bordered">
+                <thead>
+                <tr>
+                    <th>Studies</th>
+                    <th>Gene Expression Platforms</th>
+                    <th>Non-coding Expression Platforms</th>
+                </tr>
+                </thead>
+                <tfoot></tfoot>
+                <tbody>
+                <tr>
+                    <td>
+                        <input type="checkbox" id="GSE35781|CB"
+                               onchange="toggle_platforms('GSE35781');"/>
+                        Noncoding RNA expression in myocardium from infants with tetralogy of Fallot
+                        <a href="http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=gse35781">GSE35781</a>
+                    </td>
+                    <td>
+                        <div id="GSE35781-platform-EG" style="display: none;"></div>
+                    </td>
+                    <td>
+                        <div id="GSE35781-platform-MI" style="display: none;">
+                            <select id="GSE35781|Expression-miRNA" style="width: 21em;">
+                                <option value='none'>no platform selected</option>
+                                <option value='Affymetrix_miRNA_Array'>Affymetrix miRNA Array</option>
+                            </select>
+                            <input type="hidden" id="platform" value="none"/>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="checkbox" id="GSE26125|CB"
+                               onchange="toggle_platforms('GSE26125');"/>
+                        Gene expression in cardiac tissues from infants with idiopathic conotruncal defects
+                        <a href="http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=gse26125">GSE26125</a>
+                    </td>
+                    <td>
+                        <div id="GSE26125-platform-EG" style="display: none;">
+                            <select id="GSE26125|Expression-Genes" style="width: 21em;">
+                                <option value="none">no platform selected</option>
+                                <option value="Human_Whole_Genome_Bioarray">Human Whole Genome Bioarray</option>
+                            </select>
+                            <input type="hidden" id="platform" value="none"/>
+                        </div>
+                    </td>
+                    <td>
+                        <div id="GSE26125-platform-MI" style="display: none;"></div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="span12">
+        <div id="gene-selection">
+            <table id="gene-entry-table" class="table table-condensed table-bordered">
+                <thead>
+                </thead>
+                <tfoot></tfoot>
+                <tbody>
+                <tr>
+                    <td>
+                        Enter gene/non-coding symbols:
+                    </td>
+                    <td>
+                        <input type="hidden" id="symbols_Expression-Genes" style="width: 21em;"/>
+                    </td>
+                    <td>
+                        <input type="hidden" id="symbols_Expression-miRNA" style="width: 21em;"/>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <form class="form-inline">
+        {% csrf_token %}
+        <div class="span7 pull-left well">
+            <input id="statistics-btn" name="statistics-btn" type="button" class="btn btn-info" value="Statistics"/>
+            Show top <input id="show-top" name="show-top"
+                            type="text" placeholder="100" style="width: 3em;">
+            P-value &le; <input id="p-value-cutoff" name="p-value-cutoff"
+                                type="text" placeholder="0.05" style="width:3em;">
+            FDR-value &le; <input id="fdr-value-cutoff" name="fdr-value-cutoff"
+                                  type="text" placeholder="0.10" style="width:3em;">
+        </div>
+        <div class="span3 pull-left well">
+            <input id="plot-btn" name="plot-btn" type="button" class="btn btn-info" value="Plot"/>
+            <input type="checkbox" id="combined-plot"> Combined plot.
+        </div>
+    </form>
+</div>
+<div id="statistics"></div>
+<div class="row">
+    <div class="span12">
+    </div>
+</div>
+{#<div class="row">#}
+{#    <form class="form-inline">#}
+{#        <div class="span3 pull-left well">#}
+{#            <input id="plot-btn" name="plot-btn" type="button" class="btn btn-info" value="Plot"/>#}
+{#            <input type="checkbox" id="combined-plot"> Combined plot.#}
+{#        </div>#}
+{#    </form>#}
+{#</div>#}
+<div class="row">
+    <div class="tabbable span12">
+        <ul class="nav nav-tabs" id="myTab">
+            <li class="active">
+                <a href="#correlation_tab" data-toggle="tab">Correlation Plot</a>
+            </li>
+            <li class>
+                <a href="#heatmap_tab" data-toggle="tab">Heatmap</a>
+            </li>
+            {#                <li clss>#}
+            {#                    <a href="#t_test_tab" data-toggle="tab">T-Tests</a>#}
+            {#                </li>#}
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane active" id="correlation_tab">
+                <div id="correlation-plots">
+                </div>
+            </div>
+            <div class="tab-pane" id="heatmap_tab">
+                <div id="heatmaps">
                 </div>
             </div>
         </div>
     </div>
-    <div class="row">
-        <div class="span12">
-            <div id="studies">
-                <table id="study-table" class="table table-striped table-condensed table-bordered">
-                    <thead>
-                    <tr>
-                        <th>Studies</th>
-                        <th>Gene Expression Platforms</th>
-                        <th>Non-coding Expression Platforms</th>
-                    </tr>
-                    </thead>
-                    <tfoot></tfoot>
-                    <tbody>
-                    <tr>
-                        <td>
-                            <input type="checkbox" id="GSE35781|CB"
-                                   onchange="toggle_platforms('GSE35781');"/>
-                            Noncoding RNA expression in myocardium from infants with tetralogy of Fallot
-                            <a href="http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=gse35781">GSE35781</a>
-                        </td>
-                        <td>
-                            <div id="GSE35781-platform-EG" style="display: none;"></div>
-                        </td>
-                        <td>
-                            <div id="GSE35781-platform-MI" style="display: none;">
-                                <select id="GSE35781|Expression-miRNA"style="width: 21em;">
-                                    <option value='none'>no platform selected</option>
-                                    <option value='Affymetrix_miRNA_Array'>Affymetrix miRNA Array</option>
-                                </select>
-                                <input type="hidden" id="platform" value="none"/>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <input type="checkbox" id="GSE26125|CB"
-                                   onchange="toggle_platforms('GSE26125');"/>
-                            Gene expression in cardiac tissues from infants with idiopathic conotruncal defects
-                            <a href="http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=gse26125">GSE26125</a>
-                        </td>
-                        <td>
-                            <div id="GSE26125-platform-EG" style="display: none;">
-                                <select id="GSE26125|Expression-Genes"style="width: 21em;">
-                                    <option value="none">no platform selected</option>
-                                    <option value="Human_Whole_Genome_Bioarray">Human Whole Genome Bioarray</option>
-                                </select>
-                                <input type="hidden" id="platform" value="none"/>
-                            </div>
-                        </td>
-                        <td>
-                            <div id="GSE26125-platform-MI" style="display: none;"></div>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="span12">
-            <div id="gene-selection">
-                <table id="gene-entry-table" class="table table-condensed table-bordered">
-                    <thead>
-                    </thead>
-                    <tfoot></tfoot>
-                    <tbody>
-                    <tr>
-                        <td>
-                            Enter gene/non-coding symbols:
-                        </td>
-                        <td>
-                            <input type="hidden" id="symbols_Expression-Genes" style="width: 21em;"/>
-                        </td>
-                        <td>
-                            <input type="hidden" id="symbols_Expression-miRNA" style="width: 21em;"/>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>And/or, run T-Tests and select symbols</td>
-                        <td>
-                            <div class="input-group">
-                                <input id="t-test-btn" name="t-test-btn"
-                                       type="button" class="btn btn-info pull-left" value="Run T-Test">
-                            </div>
-                        </td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            Then,
-                        </td>
-                        <td>
-                            <div class="input-group">
-                                <input id="plot-btn" name="plot-btn" type="button" class="btn btn-info" value="Plot"/>
-                            </div>
-                            <label class="checkbox">
-                                <input type="checkbox" id="combined-plot"> Combined plot.
-                            </label>
-                        </td>
-                        <td></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="tabbable span12">
-            <ul class="nav nav-tabs" id="myTab">
-                <li class="active">
-                    <a href="#correlation_tab" data-toggle="tab">Correlation Plot</a>
-                </li>
-                <li class>
-                    <a href="#heatmap_tab" data-toggle="tab">Heatmap</a>
-                </li>
-                <li clss>
-                    <a href="#t_test_tab" data-toggle="tab">T-Tests</a>
-                </li>
-            </ul>
-            <div class="tab-content" id="myTabContent">
-                <div class="tab-pane active" id="correlation_tab">
-                    <div id="correlation-plots">
-                    </div>
-                </div>
-                <div class="tab-pane" id="heatmap_tab">
-                    <div id="heatmaps">
-                    </div>
-                </div>
-                <div class="tab-pane" id="t_test_tab">
-                    <div id="t_tests">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</form>
+</div>
 </body>
 </html>
