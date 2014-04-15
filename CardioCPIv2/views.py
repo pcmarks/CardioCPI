@@ -5,7 +5,6 @@ import json
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.shortcuts import render
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from numpy import array, reshape, zeros
 from pandas import DataFrame, Series
 from scipy.stats import ttest_ind
@@ -66,8 +65,7 @@ def correlation_chart(request):
     an_array = array(profile_data['values'])
     a_matrix = reshape(an_array, (len(sample_ids), len(an_array) / len(sample_ids)))
 
-    fig = plots.correlation_plot(a_matrix, study, platform, sample_ids, symbols)
-    canvas = FigureCanvas(fig)
+    canvas = plots.correlation_plot(a_matrix, study, platform, sample_ids, symbols)
 
     response = HttpResponse(content_type='image/png')
     canvas.print_png(response)
@@ -94,8 +92,7 @@ def combined_correlation_chart(request):
 
     result_matrix, row_labels, col_labels = match_and_merge(spp_arg)
 
-    fig = plots.correlation_plot(result_matrix, study, platform, row_labels, col_labels)
-    canvas = FigureCanvas(fig)
+    canvas = plots.correlation_plot(result_matrix, study, platform, row_labels, col_labels)
 
     response = HttpResponse(content_type='image/png')
     canvas.print_png(response)
@@ -121,9 +118,8 @@ def heatmap_chart(request):
     col_labels = symbols
     row_labels = profile_data['sample_ids']
 
-    fig = plots.heatmap(a_matrix, study, platform, row_labels, col_labels, False)
+    canvas = plots.heatmap(a_matrix, study, platform, row_labels, col_labels, False)
 
-    canvas = FigureCanvas(fig)
     response = HttpResponse(content_type='image/png')
     canvas.print_png(response)
 
@@ -149,9 +145,8 @@ def combined_heatmap_chart(request):
 
     result_matrix, row_labels, col_labels = match_and_merge(spp_arg)
 
-    fig = plots.heatmap(result_matrix, study_list, platform_list, row_labels, col_labels, True)
+    canvas = plots.heatmap(result_matrix, study_list, platform_list, row_labels, col_labels, True)
 
-    canvas = FigureCanvas(fig)
     response = HttpResponse(content_type='image/png')
     canvas.print_png(response)
 

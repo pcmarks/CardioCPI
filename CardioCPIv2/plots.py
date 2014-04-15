@@ -1,6 +1,10 @@
 __author__ = 'pcmarks'
 
+import matplotlib
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
 import numpy as np
 import scipy.cluster.hierarchy as sch
@@ -39,7 +43,8 @@ def correlation_plot(expr_values, study, platform, sample_ids, symbols):
     title = "Study: %s Platform: %s" % (study, platform,)
     fig.suptitle(title, y=0.99, fontsize=9)
 
-    return fig
+    canvas = FigureCanvas(fig)
+    return canvas
 
 
 def heatmap(expr_values, study, platform, sample_ids, symbols, combined):
@@ -156,7 +161,8 @@ def heatmap(expr_values, study, platform, sample_ids, symbols, combined):
     #     title = "Study: %s Profile: %s" % (study, platform,)
     # fig.suptitle(title)
 
-    return fig
+    canvas = FigureCanvas(fig)
+    return canvas
 
 
 def clean_axis(axis):
@@ -201,4 +207,5 @@ def t_test_histogram(sorted_p_values, no_of_values):
     a_plot = sorted_p_values[:no_of_values].plot(kind='bar')
     figure.add_subplot(a_plot)
 
-    return figure
+    canvas = FigureCanvas(figure)
+    return canvas
