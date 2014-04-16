@@ -19,3 +19,10 @@ body {background-color: #fffacd;}
 .plot {
     margin: 20px;
 }
+
+.table-bordered th, .table-bordered td, .table-bordered tfoot, .table-bordered thead, .table-bordered{
+    border-color: darkblue;
+}
+.nav {
+    border-color: darkblue;
+}

@@ -4,6 +4,7 @@ __author__ = 'pcmarks'
 import matplotlib
 matplotlib.use('Agg')
 
+
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
@@ -44,6 +45,7 @@ def correlation_plot(expr_values, study, platform, sample_ids, symbols):
     title = "Study: %s Platform: %s" % (study, platform,)
     fig.suptitle(title, y=0.99, fontsize=9)
 
+    fig.set_size_inches(12.0, 8.0)
     canvas = FigureCanvas(fig)
     return canvas
 
@@ -161,6 +163,8 @@ def heatmap(expr_values, study, platform, sample_ids, symbols, combined):
     # else:
     #     title = "Study: %s Profile: %s" % (study, platform,)
     # fig.suptitle(title)
+
+    fig.set_size_inches(12.0, 8.0)
 
     canvas = FigureCanvas(fig)
     return canvas
