@@ -49,6 +49,15 @@ def gene_selection(request):
     return HttpResponse(gene_list, content_type='text/json')
 
 
+def plots(request):
+    import json
+
+    spps = json.loads(request.GET.get(u'study_profile_platforms'))
+    symbols_selected = json.loads(request.GET.get(u'symbols_selected'))
+    combined_plot = json.loads(request.GET.get(u'combined_plot'))
+    print spps, symbols_selected, combined_plot
+    return HttpResponse('')
+
 def correlation_chart(request):
     """
 

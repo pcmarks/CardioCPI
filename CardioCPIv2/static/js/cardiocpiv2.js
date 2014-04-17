@@ -185,6 +185,37 @@ $(document).ready(function () {
     to be analyzed, and call for the plotting of the correlation plots and heatmaps.
     If a combined plot is being asked for, handle differently. 
      */
+    $('#test-plot-btn').click(function(e) {
+        var no_of_studies = $("input[id$='CB']").filter(":checked").length;
+        if (no_of_studies == 0) {
+            alert("You must choose at least one study.")
+            $("#plot_btn").removeAttr("disabled");
+            return false;
+        }
+        var study_profile_platforms = [];
+        var symbols_selected = [];
+        $('select').each(function() {
+            if (this.value != 'none') {
+                var study_profile_platform = this.id + '|' + this.value;
+                study_profile_platforms.push(study_profile_platform);
+                var tokens = study_profile_platform.split('|')
+                symbols_selected.push($("#symbols_" + tokens[1]).val());
+            }
+        });
+
+        $.getJSON('/plots',
+            {no_of_studies: JSON.stringify(no_of_studies),
+             combined_plot: JSON.stringify($('#combined-plot').prop("checked")),
+             study_profile_platforms: JSON.stringify(study_profile_platforms),
+             symbols_selected: JSON.stringify(symbols_selected)
+            },
+            function(data) {
+                $.each(data, function(index, element) {
+                    $('body').append($('<div>', { text: element.name}))
+            })
+        })
+    });
+
     $('#plot-btn').click(function(e) {
         // Disable the button whilst processing..
         $('#plot_btn').attr('disabled', 'disabled');
