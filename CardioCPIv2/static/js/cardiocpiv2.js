@@ -192,6 +192,10 @@ $(document).ready(function () {
             $("#plot_btn").removeAttr("disabled");
             return false;
         }
+        // Remove previous images if there were any
+        $('#heatmaps').empty();
+        $('#correlation-plots').empty();
+
         var study_profile_platforms = [];
         var symbols_selected = [];
         $('select').each(function() {
@@ -202,18 +206,34 @@ $(document).ready(function () {
                 symbols_selected.push($("#symbols_" + tokens[1]).val());
             }
         });
+        // Set aside div's to hold all of the plots
+        for (var i = 0; i < no_of_studies; i++) {
+            $("#heatmaps").append("<div id='heatmap-" +
+                i +
+                "' class='plot'> </div>");
+            $("#correlation-plots").append("<div id='correlation-plot-" +
+                i +
+                "' class='plot'> </div>");
+        }
 
-        $.getJSON('/plots',
-            {no_of_studies: JSON.stringify(no_of_studies),
-             combined_plot: JSON.stringify($('#combined-plot').prop("checked")),
-             study_profile_platforms: JSON.stringify(study_profile_platforms),
-             symbols_selected: JSON.stringify(symbols_selected)
-            },
-            function(data) {
-                $.each(data, function(index, element) {
-                    $('body').append($('<div>', { text: element.name}))
-            })
-        })
+        var request = $.ajax({
+            dataType: "json",
+            url: '/plots',
+            data: {no_of_studies: JSON.stringify(no_of_studies),
+                combined_plot: JSON.stringify($('#combined-plot').prop("checked")),
+                study_profile_platforms: JSON.stringify(study_profile_platforms),
+                symbols_selected: JSON.stringify(symbols_selected)
+                }
+        });
+        request.done(function(result) {
+            $.each(result, function(i, element) {
+                $("#correlation-plot-" + i).append(
+                    '<img src="' + element + '">')
+            });
+        });
+        request.fail(function(jqXHR, textStatus) {
+            alert("Server side failure: " + textStatus);
+        });
     });
 
     $('#plot-btn').click(function(e) {

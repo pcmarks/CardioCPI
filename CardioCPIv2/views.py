@@ -49,14 +49,40 @@ def gene_selection(request):
     return HttpResponse(gene_list, content_type='text/json')
 
 
-def plots(request):
+def all_plots(request):
     import json
 
     spps = json.loads(request.GET.get(u'study_profile_platforms'))
     symbols_selected = json.loads(request.GET.get(u'symbols_selected'))
     combined_plot = json.loads(request.GET.get(u'combined_plot'))
     print spps, symbols_selected, combined_plot
-    return HttpResponse('')
+    figure_file_names = []
+    for i in range(len(spps)):
+        spp = spps[i]
+        study, profile, platform = spp.split('|')
+        symbols = symbols_selected[i].split(',')
+        profile_data = geo_data.get_profile_data(study, profile, platform, symbols, False)
+        sample_ids = profile_data['sample_ids']
+        an_array = array(profile_data['values'])
+        a_matrix = reshape(an_array, (len(sample_ids), len(an_array) / len(sample_ids)))
+
+        figure_file_names.append(plots.new_correlation_plot(i,
+                                                            a_matrix,
+                                                            study,
+                                                            platform,
+                                                            sample_ids,
+                                                            symbols))
+        row_labels = profile_data['sample_ids']
+        col_labels = symbols
+        figure_file_names.append(plots.new_heatmap(i, a_matrix,
+                                                   study,
+                                                   platform,
+                                                   row_labels,
+                                                   col_labels,
+                                                   False))
+
+    response = HttpResponse(json.dumps(figure_file_names), content_type='text/json')
+    return response
 
 def correlation_chart(request):
     """
