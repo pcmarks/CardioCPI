@@ -26,3 +26,7 @@ body {background-color: #fffacd;}
 .nav {
     border-color: darkblue;
 }
+
+/*.accordion-heading .accordion-inner {*/
+    /*border-color: darkblue;*/
+/*}*/

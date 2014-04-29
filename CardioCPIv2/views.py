@@ -223,7 +223,7 @@ def statistics(request):
     # display_values = [(p_values_series.index[i].split('_')[0], p_values_series[i]) for i in range(10)]
     display_p_values = [(p_values_series.index[i], p_values_series[i]) for i in range(show_top)]
     display_fdr_values = [(fdr_values_series.index[i], fdr_values_series[i]) for i in range(show_top)]
-    response = render_to_string('statistics.html',
+    response = render_to_string('new_statistics.html',
                                 {"display_p_values": display_p_values,
                                  "display_fdr_values": display_fdr_values})
 
