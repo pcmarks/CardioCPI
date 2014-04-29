@@ -73,10 +73,14 @@ $(document).ready(function () {
                 args.push(this.id + '|' + this.value);
             }
         });
-        var show_top = $("#shot-top").val();
+        var show_top = $("#show-top").val();
         var p_value_cutoff = $("#p-value-cutoff").val();
         var fdr_value_cutoff = $("#fdr-value-cutoff").val();
-        $('#statistics').load('statistics?spp=' + args[0]);
+        $('#statistics').load('statistics?' +
+                'spp=' + args[0] +
+                '&show_top=' + show_top +
+                '&p_value_cutoff=' + p_value_cutoff +
+                '&fdr_value_cutoff=' + fdr_value_cutoff);
     });
 
     $('#t-test-collapsible').on('show', function (e) {

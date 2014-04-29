@@ -166,6 +166,9 @@ def statistics(request):
     # 2. Get all gene symbols for given study, profile and platform
     # 3. For each sample and for each gene symbol get expression value
 
+    fdr_value_cutoff = float(request.GET.get('fdr_value_cutoff'))
+    p_value_cutoff = float(request.GET.get('p_value_cutoff'))
+    show_top = int(request.GET.get('show_top'))
     spp = request.GET.get('spp')
     study, profile, platform = spp.split('|')
     sample_ids = geo_data.get_sample_ids(study, profile, platform)
@@ -208,19 +211,18 @@ def statistics(request):
 
     from mne.stats import bonferroni_correction, fdr_correction
 
-    reject_bonferroni, pval_bonferroni = bonferroni_correction(p_values_series, alpha=0.05)
-    reject_fdr, pval_fdr = fdr_correction(p_values_series, alpha=0.05, method='indep')
+    reject_bonferroni, pval_bonferroni = bonferroni_correction(p_values_series, alpha=p_value_cutoff)
+    reject_fdr, pval_fdr = fdr_correction(p_values_series, alpha=fdr_value_cutoff, method='indep')
 
     bonferroni_p_values = p_values_series[reject_bonferroni]
     fdr_p_values = p_values_series[reject_fdr]
     fdr_values_series = Series(pval_fdr, index=genes)
-    no_of_values = 40
     p_values_series.sort(ascending=True)
     fdr_values_series.sort(ascending=True)
 
     # display_values = [(p_values_series.index[i].split('_')[0], p_values_series[i]) for i in range(10)]
-    display_p_values = [(p_values_series.index[i], p_values_series[i]) for i in range(10)]
-    display_fdr_values = [(fdr_values_series.index[i], fdr_values_series[i]) for i in range(10)]
+    display_p_values = [(p_values_series.index[i], p_values_series[i]) for i in range(show_top)]
+    display_fdr_values = [(fdr_values_series.index[i], fdr_values_series[i]) for i in range(show_top)]
     response = render_to_string('statistics.html',
                                 {"display_p_values": display_p_values,
                                  "display_fdr_values": display_fdr_values})
