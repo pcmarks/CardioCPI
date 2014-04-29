@@ -50,157 +50,71 @@ def gene_selection(request):
 
 
 def all_plots(request):
-    import json
 
+    """
+
+    :param request:
+    :return:
+    """
+    import json
     spps = json.loads(request.GET.get(u'study_profile_platforms'))
     symbols_selected = json.loads(request.GET.get(u'symbols_selected'))
     combined_plot = json.loads(request.GET.get(u'combined_plot'))
-    print spps, symbols_selected, combined_plot
-    figure_file_names = []
-    for i in range(len(spps)):
-        spp = spps[i]
-        study, profile, platform = spp.split('|')
-        symbols = symbols_selected[i].split(',')
-        profile_data = geo_data.get_profile_data(study, profile, platform, symbols, False)
-        sample_ids = profile_data['sample_ids']
-        an_array = array(profile_data['values'])
-        a_matrix = reshape(an_array, (len(sample_ids), len(an_array) / len(sample_ids)))
+    # print spps, symbols_selected, combined_plot
+    figure_file_names = {'correlation': [], 'heatmap': []}
+    if not combined_plot:
+        for i in range(len(spps)):
+            spp = spps[i]
+            study, profile, platform = spp.split('|')
+            symbols = symbols_selected[i].split(',')
+            profile_data = geo_data.get_profile_data(study, profile, platform, symbols, False)
+            sample_ids = profile_data['sample_ids']
+            an_array = array(profile_data['values'])
+            a_matrix = reshape(an_array, (len(sample_ids), len(an_array) / len(sample_ids)))
 
-        figure_file_names.append(plots.new_correlation_plot(i,
-                                                            a_matrix,
-                                                            study,
-                                                            platform,
-                                                            sample_ids,
-                                                            symbols))
-        row_labels = profile_data['sample_ids']
-        col_labels = symbols
-        figure_file_names.append(plots.new_heatmap(i, a_matrix,
-                                                   study,
-                                                   platform,
-                                                   row_labels,
-                                                   col_labels,
-                                                   False))
+            figure_file_names['correlation'].append(plots.new_correlation_plot(i,
+                                                                               a_matrix,
+                                                                               study,
+                                                                               platform,
+                                                                               sample_ids,
+                                                                               symbols))
+            row_labels = profile_data['sample_ids']
+            col_labels = symbols
+            figure_file_names['heatmap'].append(plots.new_heatmap(i, a_matrix,
+                                                                  study,
+                                                                  platform,
+                                                                  row_labels,
+                                                                  col_labels,
+                                                                  False))
+    else:
+        result_matrix, row_labels, col_labels = match_and_merge(spps, symbols_selected)
+        study = 'Combined'
+        platforms = ''
+        for spp in spps:
+            _, _, platform = spp.split('|')
+            platforms += platform + " "
+        filename = plots.new_correlation_plot(0, result_matrix, study, platforms, row_labels, col_labels)
+        figure_file_names['correlation'].append(filename)
+        filename = plots.new_heatmap(0, result_matrix, study, platforms, row_labels, col_labels, True)
+        figure_file_names['heatmap'].append(filename)
 
     response = HttpResponse(json.dumps(figure_file_names), content_type='text/json')
     return response
 
-def correlation_chart(request):
-    """
-
-    :param request:
-    :return:
-    """
-    spp = request.GET.get('spp')
-    study, profile, platform = spp.split('|')
-    symbols = request.GET.get('symbols').split(',')
-    # Get the profile data for these symbols; combined = False
-    # profile_data = get_profile_data(study, profile, platform, symbols, False)
-    profile_data = geo_data.get_profile_data(study, profile, platform, symbols, False)
-    sample_ids = profile_data['sample_ids']
-    an_array = array(profile_data['values'])
-    a_matrix = reshape(an_array, (len(sample_ids), len(an_array) / len(sample_ids)))
-
-    canvas = plots.correlation_plot(a_matrix, study, platform, sample_ids, symbols)
-
-    response = HttpResponse(content_type='image/png')
-    canvas.print_png(response)
-
-    return response
-
-
-def combined_correlation_chart(request):
-    """
-
-    :param request:
-    :return:
-    """
-    spp_arg = request.GET.get('spp')
-    spps = spp_arg.split(',')
-    study_list = []
-    profile_list = []
-    platform_list = []
-    for spp in spps:
-        study, profile, platform, symbols = spp.split('|')
-        study_list.append(study)
-        profile_list.append(profile)
-        platform_list.append(platform)
-
-    result_matrix, row_labels, col_labels = match_and_merge(spp_arg)
-
-    canvas = plots.correlation_plot(result_matrix, study, platform, row_labels, col_labels)
-
-    response = HttpResponse(content_type='image/png')
-    canvas.print_png(response)
-
-    return response
-
-
-def heatmap_chart(request):
-    """
-
-    :param request:
-    :return:
-    """
-    spp = request.GET.get('spp')
-    study, profile, platform = spp.split('|')
-    symbols = request.GET.get('symbols').split(',')
-    # Get the profile data for these symbols; combined = False
-    # profile_data = get_profile_data(study, profile, platform, symbols, False)
-    profile_data = geo_data.get_profile_data(study, profile, platform, symbols, False)
-    an_array = array(profile_data['values'])
-    sample_count = profile_data['sample_count']
-    a_matrix = reshape(an_array, (sample_count, len(an_array) / sample_count))
-    col_labels = symbols
-    row_labels = profile_data['sample_ids']
-
-    canvas = plots.heatmap(a_matrix, study, platform, row_labels, col_labels, False)
-
-    response = HttpResponse(content_type='image/png')
-    canvas.print_png(response)
-
-    return response
-
-
-def combined_heatmap_chart(request):
-    """
-
-    :param request:
-    :return:
-    """
-    spp_arg = request.GET.get('spp')
-    spps = spp_arg.split(',')
-    study_list = []
-    profile_list = []
-    platform_list = []
-    for spp in spps:
-        study, profile, platform, symbols = spp.split('|')
-        study_list.append(study)
-        profile_list.append(profile)
-        platform_list.append(platform)
-
-    result_matrix, row_labels, col_labels = match_and_merge(spp_arg)
-
-    canvas = plots.heatmap(result_matrix, study_list, platform_list, row_labels, col_labels, True)
-
-    response = HttpResponse(content_type='image/png')
-    canvas.print_png(response)
-
-    return response
-
-
-def match_and_merge(spp_arg):
+def match_and_merge(spps, symbols_selected):
     """
 
     :param spp_arg:
     :return:
     """
-    spps = spp_arg.split(',')
     profile_data_list = []
     co_samples_list = []
     symbols_list = []
-    for spp in spps:
-        study, profile, platform, symbols = spp.split('|')
-        symbols = symbols.split(' ')
+    for i in range(len(spps)):
+        spp = spps[i]
+        symbols = symbols_selected[i]
+        study, profile, platform = spp.split('|')
+        symbols = symbols.split(',')
         # Get the profile data for these symbols; combined = True
         # profile_data = get_profile_data(study, profile, platform, ','.join(symbols), True)
         profile_data = geo_data.get_profile_data(study, profile, platform, symbols, False)
