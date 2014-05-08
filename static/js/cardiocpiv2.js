@@ -180,6 +180,21 @@ $(document).ready(function () {
                 });
                 callback(data);
             }
+//            tokenizer: function(input, selection, callback) {
+//                if (input.indexOf(',') < 0) return;
+//                var parts = input.split(',');
+//                for (var i = 0; i < parts.length; i++) {
+//                    var part = parts[i];                        yyy, xxx, abc
+//                    part = part.trim();
+//                    var valid = false;
+//                    if (['abc','xxx', 'yyy'].indexOf(part) >= 0) {
+//                        valid = true;
+//                    }
+//                    if (valid) {
+//                        callback({id: part, text: part});
+//                    }
+//                }
+//            }
         });
     });
 

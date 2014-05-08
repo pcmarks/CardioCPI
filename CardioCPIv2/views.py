@@ -8,6 +8,7 @@ from django.shortcuts import render
 from numpy import array, reshape, zeros
 from pandas import DataFrame, Series
 from scipy.stats import ttest_ind
+from mne.stats import bonferroni_correction, fdr_correction
 
 import plots
 import geo_data
@@ -208,8 +209,6 @@ def statistics(request):
     t_statistics, p_values = ttest_ind(control_df.T, diseased_df.T)
 
     p_values_series = Series(p_values, index=genes)
-
-    from mne.stats import bonferroni_correction, fdr_correction
 
     reject_bonferroni, pval_bonferroni = bonferroni_correction(p_values_series, alpha=p_value_cutoff)
     reject_fdr, pval_fdr = fdr_correction(p_values_series, alpha=fdr_value_cutoff, method='indep')
