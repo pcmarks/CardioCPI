@@ -25,11 +25,19 @@ var sleep = function(milliseconds) {
         }
     }
 }
-var p_values_select_all = function(){
+var p_values_select_all = function(all_checkbox){
+
+    $("input[id^=checkboxt]").each(function() {
+        $(this).click();
+    });
 
 };
 
 var fdr_values_select_all = function(){
+
+    $("input[id^=checkboxf]").each(function() {
+        $(this).click();
+    });
 
 };
 
