@@ -13,32 +13,60 @@
  * Triggered by selecting/deselecting a study/cancer checkbox.
  */
 var toggle_platforms = function(study) {
+    $('select[id^=' + study +']').get(0).selectedIndex = 0;
     $("div[id^=" + study + "-platform]").each(function(){
         $(this).toggle();
     });
 }
-var sleep = function(milliseconds) {
-    var start = new Date().getTime();
-    for (var i =0; i < 1e7; i++) {
-        if ((new Date().getTime() - start) > milliseconds){
-            break;
-        }
+var eg_values_select_all = function(all_checkbox){
+    if (all_checkbox.checked) {
+        $("input[id^=checkbox-eg]").each(function() {
+            if (!$(this).prop("checked")) {
+                $(this).click();
+            }
+        });
+    } else {
+        $("input[id^=checkbox-eg]").each(function() {
+            if ($(this).prop("checked")) {
+                $(this).click();
+            }
+        })
     }
-}
-var p_values_select_all = function(){
-
 };
 
-var fdr_values_select_all = function(){
-
+var mi_values_select_all = function(all_checkbox){
+    if (all_checkbox.checked) {
+        $("input[id^=checkbox-mi]").each(function() {
+            if (!$(this).prop("checked")) {
+                $(this).click();
+            }
+        });
+    } else {
+        $("input[id^=checkbox-mi]").each(function() {
+            if ($(this).prop("checked")) {
+                $(this).click();
+            }
+        })
+    }
 };
 
 /*
- The function to execute when a t-test table entry checkbox is checked/unchecked
+ The function to execute when a statistic table entry checkbox is checked/unchecked
  */
 var p_value_checked = function(the_checkbox){
-    var gene_symbol = the_checkbox.id.split('-')[1];
-    var flattened_list = $('#symbols_Expression-Genes').val()
+    var tokens = the_checkbox.id.match(/checkbox-(..)-t-(.+)/);
+    if (tokens.length != 3) {
+        alert("Internal error: 1");
+        return false;
+    }
+    var profile = tokens[1];
+    var gene_symbol = tokens[2];
+    if (profile == 'eg') {
+        var flattened_list = $('#symbols_Expression_Genes').val()
+    } else {
+        var flattened_list = $('#symbols_Expression_miRNA').val()
+    }
+
     var current_list = []
     if (flattened_list.length > 0) {
         current_list = flattened_list.split(',')
@@ -46,14 +74,22 @@ var p_value_checked = function(the_checkbox){
     if (the_checkbox.checked) {
         current_list.push(gene_symbol);
         var new_list = current_list.join(',');
-        $('#symbols_Expression-Genes').val(new_list).trigger("change");
+        if (profile == 'eg') {
+            $('#symbols_Expression_Genes').val(new_list).trigger("change");
+        } else {
+            $('#symbols_Expression_miRNA').val(new_list).trigger("change");
+        }
     } else {
         var ix = current_list.indexOf(gene_symbol)
         if (ix >= 0) {
             current_list.splice(ix,1)
         }
         var new_list = current_list.join(',')
-        $('#symbols_Expression-Genes').val(new_list).trigger("change");
+        if (profile == 'eg') {
+            $('#symbols_Expression_Genes').val(new_list).trigger("change");
+        } else {
+            $('#symbols_Expression_miRNA').val(new_list).trigger("change");
+        }
     }
 };
 
@@ -73,68 +109,29 @@ $(document).ready(function () {
                 args.push(this.id + '|' + this.value);
             }
         });
+        if (args.length == 0) {
+            alert("At least one platform must be selected.")
+            return false;
+        }
         var show_top = $("#show-top").val();
         var p_value_cutoff = $("#p-value-cutoff").val();
         var fdr_value_cutoff = $("#fdr-value-cutoff").val();
         $('#statistics').load('statistics?' +
-                'spp=' + args[0] +
+                'spps=' + args +
                 '&show_top=' + show_top +
                 '&p_value_cutoff=' + p_value_cutoff +
                 '&fdr_value_cutoff=' + fdr_value_cutoff);
     });
 
-    $('#t-test-collapsible').on('show', function (e) {
-
-        var no_of_studies = $("input[id$='CB']").filter(":checked").length;
-        if (no_of_studies == 0) {
-            alert("You must choose at least one study.")
-            return false;
-        }
-
-        // Execute an AJAX request for the t-test tables
-        var args = [];
-        $('select').each(function () {
-            if (this.value != 'none') {
-                args.push(this.id + '|' + this.value);
-            }
-        });
-        $('#t-test-values').load('t-tests?spp=' + args[0]);
-
-    });
-
-    $('#fdr-test-collapsible').on('show', function (e) {
-        var no_of_studies = $("input[id$='CB']").filter(":checked").length;
-        if (no_of_studies == 0) {
-            alert("You must choose at least one study.")
-            $("#plot_btn").removeAttr("disabled");
-            return false;
-        }
-        // Disable the button whilst processing
-        $('#t-test-btn').attr('disabled', 'disabled')
-
-        // Execute an AJAX request for the t-test tables
-        var args = [];
-        $('select').each(function () {
-            if (this.value != 'none') {
-                args.push(this.id + '|' + this.value);
-            }
-        });
-        $('#fdr-test-values').load('fdr-tests?spp=' + args[0]);
-    });
-
     $('.btn-group').button();
-
   /*
    * Attach a function to the platform select elements. Selecting an element results in a 
    * server request to load or unload that platform's symbols.
    */
    $('select').change(function(e) {
       var chosen_one = $(this).val()
-      console.log(chosen_one)
       // release current symbol set
       var hidden = $(this).siblings('#platform');
-      // load new symbol set and save id
-      //chosen_one = chosen_one.replace(/\|/g, "/")
        $.ajax({
            type: 'GET',
            dataType: 'json',
@@ -151,7 +148,7 @@ $(document).ready(function () {
      */
     $("[id^='symbols_']").each(function() {
         var thisId = this.id;
-        var tokens = thisId.split('_')
+        var profile = thisId.replace('symbols_','')
         $(this).select2({
             minimumInputLength: 2,
             maximumInputLength: 6,
@@ -161,7 +158,7 @@ $(document).ready(function () {
                 dataType: 'json',
                 data: function(term, page) {
                     return {
-                        profile: tokens[1],
+                        profile: profile,
                         symbols: term
                     }
                 },
@@ -179,6 +176,29 @@ $(document).ready(function () {
                     data.push({id: this, text: this});
                 });
                 callback(data);
+            }
+        });
+    });
+
+    /*
+     * Attach a function to the clear symbols button
+     */
+    $('#clear-symbols').click(function(e) {
+        $('#symbols_Expression_Genes').select2("val", "");
+        $('#symbols_Expression_miRNA').select2("val", "");
+        $("input[id^=all-p-values]").each(function() {
+            if ($(this).prop('checked')) {
+                $(this).click();
+            }
+        });
+        $("input[id^=checkbox-eg]").each(function() {
+            if ($(this).prop('checked')) {
+                $(this).click();
+            }
+        });
+        $("input[id^=checkbox-mi]").each(function() {
+            if ($(this).prop('checked')) {
+                $(this).click();
             }
         });
     });
@@ -205,11 +225,27 @@ $(document).ready(function () {
         $('select').each(function() {
             if (this.value != 'none') {
                 var study_profile_platform = this.id + '|' + this.value;
-                study_profile_platforms.push(study_profile_platform);
                 var tokens = study_profile_platform.split('|')
-                symbols_selected.push($("#symbols_" + tokens[1]).val());
+                var symbols = $("#symbols_" + tokens[1]).val();
+                study_profile_platforms.push(study_profile_platform);
+                symbols_selected.push(symbols);
             }
         });
+        if (study_profile_platforms.length == 0) {
+            alert("At least one platform must be selected.")
+            return false;
+        }
+        var no_symbols = false;
+        for (var i = 0; i < study_profile_platforms.length; i++) {
+            if (symbols_selected[i] == "") {
+                no_symbols = true;
+                var tokens = study_profile_platforms[i].split('|');
+                alert("No symbols selected for the " + tokens[2] + " platform.");
+            }
+        }
+        if (no_symbols) {
+            return false;
+        }
         // Set aside div's to hold all of the plots
         for (var i = 0; i < no_of_studies; i++) {
             $("#heatmaps").append("<div id='heatmap-plot-" + i +

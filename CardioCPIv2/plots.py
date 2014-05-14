@@ -19,6 +19,7 @@ from numpy import arange
 
 from django.conf import settings
 import os
+import re
 
 def new_correlation_plot(figure_number, expr_values, study, platform, sample_ids, symbols):
     """
@@ -36,7 +37,13 @@ def new_correlation_plot(figure_number, expr_values, study, platform, sample_ids
     ax = fig.add_subplot(111)
     fig.patch.set_facecolor('white')
     correlation = ax.pcolor(rho, cmap=plt.cm.Blues)
-    genes = [symbol.split('_')[0] for symbol in symbols]
+    genes = []
+    for symbol in symbols:
+        match_result = re.match(r"(.+)(_\d+)", symbol)
+        if match_result:
+            genes.append(match_result.group(1))
+        else:
+            genes.append(symbol)
     ax.set_yticks(arange(rho.shape[0]) + 0.5, minor=False)
     ax.set_xticks(arange(rho.shape[0]) + 0.5, minor=False)
     ax.set_yticklabels(genes, minor=False, size='small')
@@ -133,7 +140,14 @@ def new_heatmap(figure_number, expr_values, study, platform, sample_ids, symbols
     clean_axis(heat_map_axis)
 
     # Prepare the heatmap row labels based on the gene symbols
-    genes = np.array([symbol.split('_')[0] for symbol in symbols])
+    gene_symbols = []
+    for symbol in symbols:
+        match_result = re.match(r"(.+)(_\d+)", symbol)
+        if match_result:
+            gene_symbols.append(match_result.group(1))
+        else:
+            gene_symbols.append(symbol)
+    genes = np.array(gene_symbols)
     heat_map_axis.set_yticks(np.arange(len(genes)))
     heat_map_axis.yaxis.set_ticks_position('right')
     heat_map_axis.set_yticklabels(genes[row_indexes])

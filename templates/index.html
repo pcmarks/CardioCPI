@@ -60,7 +60,7 @@
                     </td>
                     <td>
                         <div id="GSE35781-platform-MI" style="display: none;">
-                            <select id="GSE35781|Expression-miRNA" style="width: 21em;">
+                            <select id="GSE35781|Expression_miRNA" style="width: 21em;">
                                 <option value='none'>no platform selected</option>
                                 <option value='Affymetrix_miRNA_Array'>Affymetrix miRNA Array</option>
                             </select>
@@ -77,7 +77,7 @@
                     </td>
                     <td>
                         <div id="GSE26125-platform-EG" style="display: none;">
-                            <select id="GSE26125|Expression-Genes" style="width: 21em;">
+                            <select id="GSE26125|Expression_Genes" style="width: 21em;">
                                 <option value="none">no platform selected</option>
                                 <option value="Human_Whole_Genome_Bioarray">Human Whole Genome Bioarray</option>
                             </select>
@@ -101,12 +101,14 @@
                 <tr>
                     <td>
                         Enter gene/non-coding symbols:
+                        <input id="clear-symbols" name="clear-symbols" type="button" class="btn btn-info btn-small"
+                               value="Clear symbols"/>
                     </td>
                     <td>
-                        <input type="hidden" id="symbols_Expression-Genes" style="width: 21em;"/>
+                        <input type="hidden" id="symbols_Expression_Genes" style="width: 21em;"/>
                     </td>
                     <td>
-                        <input type="hidden" id="symbols_Expression-miRNA" style="width: 21em;"/>
+                        <input type="hidden" id="symbols_Expression_miRNA" style="width: 21em;"/>
                     </td>
                 </tr>
                 </tbody>

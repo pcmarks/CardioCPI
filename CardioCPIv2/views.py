@@ -8,6 +8,7 @@ from django.shortcuts import render
 from numpy import array, reshape, zeros
 from pandas import DataFrame, Series
 from scipy.stats import ttest_ind
+from mne.stats import bonferroni_correction, fdr_correction
 
 import plots
 import geo_data
@@ -29,7 +30,8 @@ def platform_selection(request):
     :param request:
     :return:
     """
-    study, profile = request.GET.get("study_profile").split("|")
+    study, display_profile = request.GET.get("study_profile").split("|")
+    profile = display_profile.replace('_', '-')
     new_platform = request.GET.get('new')
     old_platform = request.GET.get('old')
     # Called for its side effects - caching of a platform's symbols,
@@ -43,7 +45,8 @@ def gene_selection(request):
     :param request:
     :return:
     """
-    profile = request.GET.get('profile')
+    display_profile = request.GET.get('profile')
+    profile = display_profile.replace('_', '-')
     symbols = request.GET.get('symbols')
     gene_list = geo_data.match_symbols(profile, symbols)
     return HttpResponse(gene_list, content_type='text/json')
@@ -65,10 +68,22 @@ def all_plots(request):
     if not combined_plot:
         for i in range(len(spps)):
             spp = spps[i]
-            study, profile, platform = spp.split('|')
+            study, display_profile, platform = spp.split('|')
+            profile = display_profile.replace('_', '-')
             symbols = symbols_selected[i].split(',')
+            if len(symbols) == 0:
+                break
             profile_data = geo_data.get_profile_data(study, profile, platform, symbols, False)
             sample_ids = profile_data['sample_ids']
+            sample_attributes = profile_data['sample_attributes']
+            augmented_sample_ids = []
+            for i in range(len(sample_ids)):
+                attribute = json.loads(sample_attributes[i])
+                if attribute['control']:
+                    augmented_sample_ids.append('C-%s' % sample_ids[i])
+                else:
+                    augmented_sample_ids.append('D-%s' % sample_ids[i])
+
             an_array = array(profile_data['values'])
             a_matrix = reshape(an_array, (len(sample_ids), len(an_array) / len(sample_ids)))
 
@@ -76,9 +91,9 @@ def all_plots(request):
                                                                                a_matrix,
                                                                                study,
                                                                                platform,
-                                                                               sample_ids,
+                                                                               augmented_sample_ids,
                                                                                symbols))
-            row_labels = profile_data['sample_ids']
+            row_labels = augmented_sample_ids
             col_labels = symbols
             figure_file_names['heatmap'].append(plots.new_heatmap(i, a_matrix,
                                                                   study,
@@ -113,7 +128,8 @@ def match_and_merge(spps, symbols_selected):
     for i in range(len(spps)):
         spp = spps[i]
         symbols = symbols_selected[i]
-        study, profile, platform = spp.split('|')
+        study, display_profile, platform = spp.split('|')
+        profile = display_profile.replace('_', '-')
         symbols = symbols.split(',')
         # Get the profile data for these symbols; combined = True
         # profile_data = get_profile_data(study, profile, platform, ','.join(symbols), True)
@@ -162,70 +178,83 @@ def match_and_merge(spps, symbols_selected):
 
 
 def statistics(request):
-    # 1. Get all sample ids for given study, profile and platform
-    # 2. Get all gene symbols for given study, profile and platform
-    # 3. For each sample and for each gene symbol get expression value
+    """
 
+    :param request:
+    :return:
+    """
+    # display_p_values = {}
+    # display_fdr_values = {}
     fdr_value_cutoff = float(request.GET.get('fdr_value_cutoff'))
+    display_values = {}
     p_value_cutoff = float(request.GET.get('p_value_cutoff'))
     show_top = int(request.GET.get('show_top'))
-    spp = request.GET.get('spp')
-    study, profile, platform = spp.split('|')
-    sample_ids = geo_data.get_sample_ids(study, profile, platform)
-    control_sample_ids = []
-    diseased_sample_ids = []
-    for sample_id in sample_ids:
-        sample_attributes = geo_data.get_sample_attributes(study, profile, platform, sample_id)
-        if sample_attributes['control']:
-            control_sample_ids.append(sample_id)
-        else:
-            diseased_sample_ids.append(sample_id)
+    spps = request.GET.get('spps')
+    spps = spps.split(',')
+    for spp in spps:
+        study, display_profile, platform = spp.split('|')
+        profile = display_profile.replace('_', '-')
+        sample_ids = geo_data.get_sample_ids(study, profile, platform)
+        control_sample_ids = []
+        diseased_sample_ids = []
+        for sample_id in sample_ids:
+            sample_attributes = geo_data.get_sample_attributes(study, profile, platform, sample_id)
+            if sample_attributes['control']:
+                control_sample_ids.append(sample_id)
+            else:
+                diseased_sample_ids.append(sample_id)
 
-    genes = geo_data.get_all_gene_symbols(study, profile, platform)
-    no_of_genes = len(genes)
-    control_exprs = zeros((no_of_genes, len(control_sample_ids)))
-    diseased_exprs = zeros((no_of_genes, len(diseased_sample_ids)))
-    for (g_index, gene) in enumerate(genes):
-        gene_exprs = zeros(len(control_sample_ids))
-        for (s_index, sample_id) in enumerate(control_sample_ids):
-            expr_value = geo_data.get_gene_expression_value(study, profile, platform, sample_id, gene)
-            if expr_value == 'None':
-                continue
-            gene_exprs[s_index] = expr_value
-        control_exprs[g_index] = gene_exprs
+        genes = geo_data.get_all_gene_symbols(study, profile, platform)
+        no_of_genes = len(genes)
+        control_exprs = zeros((no_of_genes, len(control_sample_ids)))
+        diseased_exprs = zeros((no_of_genes, len(diseased_sample_ids)))
+        for (g_index, gene) in enumerate(genes):
+            gene_exprs = zeros(len(control_sample_ids))
+            for (s_index, sample_id) in enumerate(control_sample_ids):
+                expr_value = geo_data.get_gene_expression_value(study, profile, platform, sample_id, gene)
+                if expr_value == 'None':
+                    continue
+                gene_exprs[s_index] = expr_value
+            control_exprs[g_index] = gene_exprs
 
-        gene_exprs = zeros(len(diseased_sample_ids))
-        for (s_index, sample_id) in enumerate(diseased_sample_ids):
-            expr_value = geo_data.get_gene_expression_value(study, profile, platform, sample_id, gene)
-            if expr_value == 'None':
-                continue
-            gene_exprs[s_index] = expr_value
-        diseased_exprs[g_index] = gene_exprs
+            gene_exprs = zeros(len(diseased_sample_ids))
+            for (s_index, sample_id) in enumerate(diseased_sample_ids):
+                expr_value = geo_data.get_gene_expression_value(study, profile, platform, sample_id, gene)
+                if expr_value == 'None':
+                    continue
+                gene_exprs[s_index] = expr_value
+            diseased_exprs[g_index] = gene_exprs
 
-    control_df = DataFrame(control_exprs, index=genes, columns=control_sample_ids)
-    diseased_df = DataFrame(diseased_exprs, index=genes, columns=diseased_sample_ids)
+        control_df = DataFrame(control_exprs, index=genes, columns=control_sample_ids)
+        diseased_df = DataFrame(diseased_exprs, index=genes, columns=diseased_sample_ids)
 
-    t_statistics, p_values = ttest_ind(control_df.T, diseased_df.T)
+        t_statistics, p_values = ttest_ind(control_df.T, diseased_df.T)
 
-    p_values_series = Series(p_values, index=genes)
+        p_values_series = Series(p_values, index=genes)
 
-    from mne.stats import bonferroni_correction, fdr_correction
+        reject_bonferroni, pval_bonferroni = bonferroni_correction(p_values_series, alpha=p_value_cutoff)
+        reject_fdr, pval_fdr = fdr_correction(p_values_series, alpha=fdr_value_cutoff, method='indep')
 
-    reject_bonferroni, pval_bonferroni = bonferroni_correction(p_values_series, alpha=p_value_cutoff)
-    reject_fdr, pval_fdr = fdr_correction(p_values_series, alpha=fdr_value_cutoff, method='indep')
+        # bonferroni_p_values = p_values_series[reject_bonferroni]
+        # fdr_p_values = p_values_series[reject_fdr]
+        fdr_values_series = Series(pval_fdr, index=genes)
+        p_values_series.sort(ascending=True)
+        combined_series = []
+        for i in range(show_top):
+            symbol = p_values_series.index[i]
+            p_value = p_values_series[i]
+            fdr_value = fdr_values_series.get(symbol)
+            combined_series.append([symbol, p_value, fdr_value])
+        # fdr_values_series.sort(ascending=True)
+        display_values[display_profile] = combined_series
+        # display_values = [(p_values_series.index[i].split('_')[0], p_values_series[i]) for i in range(10)]
+        # display_values[display_profile] = [(p_values_series.index[i], p_values_series[i]) for i in range(show_top)]
+        # display_fdr_values[display_profile] = [(fdr_values_series.index[i], fdr_values_series[i]) for i in range(show_top)]
 
-    bonferroni_p_values = p_values_series[reject_bonferroni]
-    fdr_p_values = p_values_series[reject_fdr]
-    fdr_values_series = Series(pval_fdr, index=genes)
-    p_values_series.sort(ascending=True)
-    fdr_values_series.sort(ascending=True)
-
-    # display_values = [(p_values_series.index[i].split('_')[0], p_values_series[i]) for i in range(10)]
-    display_p_values = [(p_values_series.index[i], p_values_series[i]) for i in range(show_top)]
-    display_fdr_values = [(fdr_values_series.index[i], fdr_values_series[i]) for i in range(show_top)]
-    response = render_to_string('new_statistics.html',
-                                {"display_p_values": display_p_values,
-                                 "display_fdr_values": display_fdr_values})
+    response = render_to_string('statistics.html',
+        {"display_values": display_values})
+                                # {"display_p_values": display_p_values,
+                                #  "display_fdr_values": display_fdr_values})
 
     return HttpResponse(response)
 
