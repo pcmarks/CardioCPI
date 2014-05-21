@@ -8,6 +8,7 @@ from django.shortcuts import render
 from numpy import array, reshape, zeros
 from pandas import DataFrame, Series
 from scipy.stats import ttest_ind
+import mne.stats
 from mne.stats import bonferroni_correction, fdr_correction
 
 import plots
@@ -34,8 +35,8 @@ def platform_selection(request):
     profile = display_profile.replace('_', '-')
     new_platform = request.GET.get('new')
     old_platform = request.GET.get('old')
-    # Called for its side effects - caching of a platform's symbols,
-    geo_data.switch_platform(study, profile, new_platform, old_platform)
+    # Called for its side effects - caching of a platform's symbols in session storage.
+    geo_data.new_switch_platform(request, study, profile, new_platform, old_platform)
     return HttpResponse("HUH?")
 
 
@@ -48,7 +49,7 @@ def gene_selection(request):
     display_profile = request.GET.get('profile')
     profile = display_profile.replace('_', '-')
     symbols = request.GET.get('symbols')
-    gene_list = geo_data.match_symbols(profile, symbols)
+    gene_list = geo_data.new_match_symbols(request, profile, symbols)
     return HttpResponse(gene_list, content_type='text/json')
 
 
@@ -115,6 +116,7 @@ def all_plots(request):
 
     response = HttpResponse(json.dumps(figure_file_names), content_type='text/json')
     return response
+
 
 def match_and_merge(spps, symbols_selected):
     """
@@ -208,6 +210,8 @@ def statistics(request):
         no_of_genes = len(genes)
         control_exprs = zeros((no_of_genes, len(control_sample_ids)))
         diseased_exprs = zeros((no_of_genes, len(diseased_sample_ids)))
+        from geo_data import db_open, db_close
+        db_open()
         for (g_index, gene) in enumerate(genes):
             gene_exprs = zeros(len(control_sample_ids))
             for (s_index, sample_id) in enumerate(control_sample_ids):
@@ -225,6 +229,7 @@ def statistics(request):
                 gene_exprs[s_index] = expr_value
             diseased_exprs[g_index] = gene_exprs
 
+        db_close()
         control_df = DataFrame(control_exprs, index=genes, columns=control_sample_ids)
         diseased_df = DataFrame(diseased_exprs, index=genes, columns=diseased_sample_ids)
 
@@ -257,4 +262,5 @@ def statistics(request):
                                 #  "display_fdr_values": display_fdr_values})
 
     return HttpResponse(response)
+
 
