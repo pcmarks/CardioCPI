@@ -11,13 +11,13 @@ urlpatterns = patterns('',
 
     url(r'^$', 'CardioCPIv2.views.home',
         name='home'),
-    url(r'^platform_selection$', 'CardioCPIv2.views.platform_selection',
+    url(r'^cardiocpi/platform_selection$', 'CardioCPIv2.views.platform_selection',
         name='platform_selection'),
-    url(r'^gene_selection$', 'CardioCPIv2.views.gene_selection',
+    url(r'^cardiocpi/gene_selection$', 'CardioCPIv2.views.gene_selection',
         name='gene_selection'),
-    url(r'^plots$', 'CardioCPIv2.views.all_plots',
+    url(r'^cardiocpi/plots$', 'CardioCPIv2.views.all_plots',
         name='all_plots'),
-    url(r'^statistics$', 'CardioCPIv2.views.statistics',
+    url(r'^cardiocpi/statistics$', 'CardioCPIv2.views.statistics',
         name = 'statistics'),
 
     # Examples:

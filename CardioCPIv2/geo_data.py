@@ -7,25 +7,8 @@ import leveldb
 from json import JSONDecoder, JSONEncoder
 import os
 
-#############################################################################################
-# Replace the following two values with the directory path of the leveldb data stores: one for
-# the profile (expression) values and one for the clinical data
-#
-# profileOuterDirectory = '/home/pcmarks/Projects/Duarte/data/GEO'
-# clinicalOuterDirectory = '/home/pcmarks/Projects/Duarte/data/GEO'
-profileOuterDirectory = '/home/pcmarks/Work/MMCRI/duarte/GEO/data/database'
-clinicalOuterDirectory = '/home/pcmarks/Work/MMCRI/duarte/GEO/data/database'
-#############################################################################################
+global profile_db, clinical_db
 
-# Open the profile (expression) data store
-profile_db = 'expression_db'
-profileDatabaseDirectory = os.path.join(profileOuterDirectory, profile_db)
-profile_db = leveldb.LevelDB(profileDatabaseDirectory)
-
-# open the clinical data store
-clinical_db = 'clinical_db'
-clinicalDatabaseDirectory = os.path.join(clinicalOuterDirectory, clinical_db)
-clinical_db = leveldb.LevelDB(clinicalDatabaseDirectory)
 
 # Database codes that are used to create the data store keys. Parts of the keys are separated
 # by "|"s
@@ -66,6 +49,57 @@ global profile_class_platforms
 profile_class_platforms = {}
 
 
+def db_open():
+    global profile_db, clinical_db
+
+    #############################################################################################
+    # Replace the following two values with the directory path of the leveldb data stores: one for
+    # the profile (expression) values and one for the clinical data
+    #
+    # profileOuterDirectory = '/home/pcmarks/Projects/Duarte/data/GEO'
+    # clinicalOuterDirectory = '/home/pcmarks/Projects/Duarte/data/GEO'
+    profileOuterDirectory = '/home/pcmarks/Work/MMCRI/duarte/GEO/data/database'
+    clinicalOuterDirectory = '/home/pcmarks/Work/MMCRI/duarte/GEO/data/database'
+    #############################################################################################
+
+    # Open the profile (expression) data store
+    profileDatabaseDirectory = os.path.join(profileOuterDirectory, 'expression_db')
+    profile_db = leveldb.LevelDB(profileDatabaseDirectory)
+
+    # open the clinical data store
+    clinicalDatabaseDirectory = os.path.join(clinicalOuterDirectory, 'clinical_db')
+    clinical_db = leveldb.LevelDB(clinicalDatabaseDirectory)
+
+
+def db_close():
+    global profile_db, clinical_db
+
+    del profile_db
+    del clinical_db
+
+
+def new_switch_platform(request, study, profile, new_platform, old_platform):
+    """
+
+    :param study:
+    :param profile:
+    :param new_platform:
+    :param old_platform:
+    :return:
+    """
+    db_open()
+    if not request.session.get(profile):
+        key = '|'.join(
+            [study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, new_platform, genes_code])
+        gene_symbols = profile_db.Get(key)
+        gene_symbols_length = len(gene_symbols)
+        # There might be duplicate sample ids in the list - remove them
+        gene_symbol_list = JSONDecoder().decode(gene_symbols)
+        request.session[profile] = gene_symbol_list
+    db_close()
+    return
+
+
 def switch_platform(study, profile, new_platform, old_platform):
     """
 
@@ -98,6 +132,7 @@ def switch_platform(study, profile, new_platform, old_platform):
         key = '|'.join(
             [study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, platform, genes_code])
         gene_symbols = profile_db.Get(key)
+        gene_symbols_length = len(gene_symbols)
         # There might be duplicate sample ids in the list - remove them
         gene_symbol_list = JSONDecoder().decode(gene_symbols)
         if profile in gene_symbols_cache:
@@ -105,6 +140,30 @@ def switch_platform(study, profile, new_platform, old_platform):
         else:
             gene_symbols_cache[profile] = set(gene_symbol_list)
     return
+
+
+def new_match_symbols(request, profile, symbols):
+    """
+
+    :param profile:
+    :param symbols:
+    :return:
+    """
+    global gene_symbols_cache
+
+    gene_symbol_list = None
+    genes = symbols.split(',')
+    try:
+        gene_symbol_list = request.session[profile]
+        if genes:
+            # Only grab the first gene symbol in the gene query
+            gene = genes[0].upper()
+            gene_symbol_list = [x for x in gene_symbol_list if gene in x]
+    except KeyError:
+        # No cache entry
+        pass
+    gene_symbols = JSONEncoder().encode(gene_symbol_list)
+    return gene_symbols
 
 
 def match_symbols(profile, symbols):
@@ -141,6 +200,7 @@ def get_profile_data(study, profile, platform, genes, combined):
     :param combined:
     :return:
     """
+    db_open()
     sample_attributes_list = []
     expressionValues = []
     try:
@@ -152,8 +212,8 @@ def get_profile_data(study, profile, platform, genes, combined):
         accepted_sample_id_list = []
         for sample_id in sample_id_list:
             try:
-                attributes = profile_db.Get('|'.join( \
-                    [study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, platform, \
+                attributes = profile_db.Get('|'.join(
+                    [study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, platform,
                      SAMPLE_ID_CODE, sample_id, SAMPLE_ATTRIBUTES_CODE]))
             except KeyError:
                 continue
@@ -180,6 +240,7 @@ def get_profile_data(study, profile, platform, genes, combined):
         expressionValues = None
     result = {'values': expressionValues, 'sample_count': len(accepted_sample_id_list), \
               'sample_ids': accepted_sample_id_list, 'sample_attributes': sample_attributes_list}
+    db_close()
     return result
 
 
@@ -191,11 +252,13 @@ def get_sample_ids(study, profile, platform):
     :param platform:
     :return:
     """
+    db_open()
     key = '|'.join([study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, platform, sample_ids_code])
     sample_ids = profile_db.Get(key)
     # There may be duplicates in the sample id list - get rid of them
     sample_id_list = JSONDecoder().decode(sample_ids)
     sample_id_list = list(set(sample_id_list))
+    db_close()
     return sample_id_list
 
 
@@ -207,8 +270,10 @@ def get_all_gene_symbols(study, profile, platform):
     :param platform:
     :return:
     """
+    db_open()
     key = '|'.join([study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, platform, genes_code])
     genes = profile_db.Get(key)
+    db_close()
     return JSONDecoder().decode(genes)
 
 
@@ -240,6 +305,7 @@ def get_sample_attributes(study, profile, platform, sample_id):
     :param sample_id:
     :return:
     """
+    db_open()
     attributes = None
     try:
         key = '|'.join([study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, platform, \
@@ -247,6 +313,6 @@ def get_sample_attributes(study, profile, platform, sample_id):
         attributes = profile_db.Get(key)
     except KeyError:
         pass
-
+    db_close()
     return JSONDecoder().decode(attributes)
 
