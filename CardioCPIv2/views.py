@@ -8,8 +8,11 @@ from django.shortcuts import render
 from numpy import array, reshape, zeros
 from pandas import DataFrame, Series
 from scipy.stats import ttest_ind
-import mne.stats
-from mne.stats import bonferroni_correction, fdr_correction
+
+# import os
+# os.environ["HOME"] = "/home/pcmarks"
+
+from mne.stats import fdr_correction
 
 import plots
 import geo_data
@@ -121,7 +124,7 @@ def all_plots(request):
 def match_and_merge(spps, symbols_selected):
     """
 
-    :param spp_arg:
+    :param spps:
     :return:
     """
     profile_data_list = []
@@ -190,7 +193,8 @@ def statistics(request):
     fdr_value_cutoff = float(request.GET.get('fdr_value_cutoff'))
     display_values = {}
     p_value_cutoff = float(request.GET.get('p_value_cutoff'))
-    show_top = int(request.GET.get('show_top'))
+    #show_top = int(request.GET.get('show_top'))
+    show_top = 140;
     spps = request.GET.get('spps')
     spps = spps.split(',')
     for spp in spps:
@@ -237,7 +241,7 @@ def statistics(request):
 
         p_values_series = Series(p_values, index=genes)
 
-        reject_bonferroni, pval_bonferroni = bonferroni_correction(p_values_series, alpha=p_value_cutoff)
+        #reject_bonferroni, pval_bonferroni = bonferroni_correction(p_values_series, alpha=p_value_cutoff)
         reject_fdr, pval_fdr = fdr_correction(p_values_series, alpha=fdr_value_cutoff, method='indep')
 
         # bonferroni_p_values = p_values_series[reject_bonferroni]

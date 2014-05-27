@@ -95,6 +95,18 @@ var p_value_checked = function(the_checkbox){
 
 $(document).ready(function () {
 
+//    // Initialize the datatables
+//    $('#eg-stats').DataTable({
+//        "processing": true,
+//        "serverSide": true,
+//        "ajax": "cardiocpi/statspage?platform=eg"
+//    });
+//    $('#mi-stats').DataTable({
+//        "processing": true,
+//        "serverSide": true,
+//        "ajax": "cardiocpi/statspage?platform=mi"
+//    });
+
     $('#statistics-btn').click(function() {
         var no_of_studies = $("input[id$='CB']").filter(":checked").length;
         if (no_of_studies == 0) {
@@ -227,8 +239,10 @@ $(document).ready(function () {
                 var study_profile_platform = this.id + '|' + this.value;
                 var tokens = study_profile_platform.split('|')
                 var symbols = $("#symbols_" + tokens[1]).val();
-                study_profile_platforms.push(study_profile_platform);
-                symbols_selected.push(symbols);
+                if (typeof symbols != 'undefined') {
+                    study_profile_platforms.push(study_profile_platform);
+                    symbols_selected.push(symbols);
+                }
             }
         });
         if (study_profile_platforms.length == 0) {

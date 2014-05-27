@@ -3,8 +3,16 @@
 <head>
     {% load staticfiles %}
     <title>MMCRI CardioCPI v2</title>
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.0/css/jquery.dataTables.css">
+{#    <link rel="stylesheet" type="text/css" href="http://cdn.datatables.net/plug-ins/28e7751dbec/integration/bootstrap/3/dataTables.bootstrap.css">#}
+    <!-- jquery library -->
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+
+    <!-- DataTables -->
+    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.0/js/jquery.dataTables.js"></script>
+
     <script src="{% static 'js/bootstrap.min.js' %}"></script>
     <script src="{% static 'js/select2.js' %}"></script>
     <!-- CardioCPIv2 javascript -->
@@ -12,7 +20,12 @@
 
     <link href="{% static 'css/select2.css' %}" rel="stylesheet" media="screen">
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" media="screen">
-
+    <link href="//cdn.datatables.net/plug-ins/28e7751dbec/integration/bootstrap/3/dataTables.bootstrap.css"
+          rel="stylesheet" type="text/css">
+    <script src="//cdn.datatables.net/plug-ins/28e7751dbec/integration/bootstrap/3/dataTables.bootstrap.js"
+            type="text/javascript"></script>
+    <!-- CardioCPIv2 styling -->
+    <link href="{% static 'css/cardiocpiv2.css' %}" rel="stylesheet" media="screen">
 </head>
 <body>
 <div class="row">
@@ -42,9 +55,9 @@
             <table id="study-table" class="table table-striped table-condensed table-bordered">
                 <thead>
                 <tr>
-                    <th>Studies</th>
-                    <th>Gene Expression Platforms</th>
-                    <th>Non-coding Expression Platforms</th>
+                    <th class="study">Studies</th>
+                    <th class="platform">Gene Expression Platforms</th>
+                    <th class="platform">Non-coding Expression Platforms</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -99,16 +112,16 @@
             <table id="gene-entry-table" class="table table-condensed table-bordered">
                 <tbody>
                 <tr>
-                    <td>
+                    <td class="study">
                         Enter gene/non-coding symbols:
                         <input id="clear-symbols" name="clear-symbols" type="button" class="btn btn-info btn-small"
                                value="Clear symbols"/>
                     </td>
-                    <td>
-                        <input type="hidden" id="symbols_Expression_Genes" style="width: 21em;"/>
+                    <td class="platform">
+                        <input type="hidden" id="symbols_Expression_Genes" style="width:24em;"/>
                     </td>
-                    <td>
-                        <input type="hidden" id="symbols_Expression_miRNA" style="width: 21em;"/>
+                    <td class="platform">
+                        <input type="hidden" id="symbols_Expression_miRNA" style="width:24em;"/>
                     </td>
                 </tr>
                 </tbody>
@@ -123,7 +136,7 @@
                 <div class="accordion-heading">
                     <a class="accordion-toggle" data-toggle="collapse" data-parent="#statistics-accordion"
                        href="#statistics-collapsible">
-                        Click here to access statistics facilities.
+                        Click here to access statistical facilities.
                     </a>
                 </div>
                 <div id="statistics-collapsible" class="accordion-body collapse">
@@ -135,9 +148,9 @@
                                 <div class="span7 well">
                                     <input id="statistics-btn" name="statistics-btn" type="button" class="btn btn-info"
                                            value="Statistics"/>
-                                    Show top <input id="show-top" name="show-top"
-                                                    type="number" value="10" min="10" max="1000" step="10"
-                                                    style="width: 3em;">
+{#                                    Show top <input id="show-top" name="show-top"#}
+{#                                                    type="number" value="10" min="10" max="1000" step="10"#}
+{#                                                    style="width: 3em;">#}
                                     P-value &le; <input id="p-value-cutoff" name="p-value-cutoff"
                                                         type="number" value="0.05" min="0.01" max="0.1" step="0.01"
                                                         style="width:3em;">
@@ -206,7 +219,5 @@
         </div>
     </div>
 </div>
-<!-- CardioCPIv2 styling -->
-<link href="{% static 'css/cardiocpiv2.css' %}" rel="stylesheet" media="screen">
 </body>
 </html>
