@@ -1,7 +1,8 @@
 <div class="row">
     <div class="span5">
         {% if display_values.Expression_Genes %}
-            <table id='eg-stats' class="display table table-striped table-condensed table-bordered">
+            <table id='eg-stats'
+                   class="display table table-striped table-condensed table-bordered">
                 <thead>
                 <tr>
                     <th>
@@ -27,9 +28,7 @@
             </table>
         {% endif %}
     </div>
-<div class="span1">
-
-</div>
+    <div class="span1"></div>
     <div class="span5">
         {% if display_values.Expression_miRNA %}
             <table id='mi-stats' class="display table table-striped table-condensed table-bordered">
@@ -58,6 +57,36 @@
             </table>
         {% endif %}
     </div>
+</div>
+<div class="row">
+    <p></p>
+</div>
+<div class="row">
+    <div class="span2"></div>
+    <div class="span1">
+        {% if display_values.Expression_Genes %}
+{#            <form action="cardiocpi/export" method="post">#}
+{#            {% csrf_token %}#}
+{#            <button type="submit" class="btn btn-info" name="download-1">Export</button>#}
+{#            </form>#}
+            <input id="export|Expression-Genes"
+                   name="export|Expression-Genes"
+                   type="button" class="btn btn-info"
+                   value="Export"
+                   onclick="export_statistics(this.id);"/>
+        {% endif %}
+    </div>
+    <div class="span3"></div>
+    <div class="span2"></div>
+    <div class="span1">
+        {% if display_values.Expression_miRNA %}
+            <input id="export|Expression-miRNA"
+                   name="export|Expression-miRNA" type="button" class="btn btn-info"
+                   value="Export"
+                    onclick="export_statistics(this.id);"/>
+        {% endif %}
+    </div>
+    <div class="span2"></div>
 </div>
 <script type="text/javascript">
     $('table.display').dataTable();

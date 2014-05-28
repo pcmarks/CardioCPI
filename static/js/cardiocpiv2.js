@@ -13,7 +13,7 @@
  * Triggered by selecting/deselecting a study/cancer checkbox.
  */
 var toggle_platforms = function(study) {
-    $('select[id^=' + study +']').get(0).selectedIndex = 0;
+    $("select[id^='platform|" + study +"']").get(0).selectedIndex = 0;
     $("div[id^=" + study + "-platform]").each(function(){
         $(this).toggle();
     });
@@ -93,6 +93,17 @@ var p_value_checked = function(the_checkbox){
     }
 };
 
+var export_statistics = function(id) {
+    window.location = 'cardiocpi/export?id='+id;
+//    var request = $.ajax({
+//        url: 'cardiocpi/export',
+//        data: {
+//            id: id
+//        }
+//    });
+}
+
+
 $(document).ready(function () {
 
 //    // Initialize the datatables
@@ -116,7 +127,7 @@ $(document).ready(function () {
 
         // Execute an AJAX request for the statistics
         var args = [];
-        $('select').each(function () {
+        $("select[id^='platform|']").each(function () {
             if (this.value != 'none') {
                 args.push(this.id + '|' + this.value);
             }
@@ -125,14 +136,12 @@ $(document).ready(function () {
             alert("At least one platform must be selected.")
             return false;
         }
-        var show_top = $("#show-top").val();
-        var p_value_cutoff = $("#p-value-cutoff").val();
-        var fdr_value_cutoff = $("#fdr-value-cutoff").val();
+        var cutoff_type = $("#cutoff-type").val();
+        var cutoff_value = $("#cutoff-value").val();
         $('#statistics').load('cardiocpi/statistics?' +
                 'spps=' + args +
-                '&show_top=' + show_top +
-                '&p_value_cutoff=' + p_value_cutoff +
-                '&fdr_value_cutoff=' + fdr_value_cutoff);
+                '&cutoff_type=' + cutoff_type +
+                '&cutoff_value=' + cutoff_value);
     });
 
     $('.btn-group').button();
@@ -140,8 +149,8 @@ $(document).ready(function () {
    * Attach a function to the platform select elements. Selecting an element results in a 
    * server request to load or unload that platform's symbols.
    */
-   $('select').change(function(e) {
-      var chosen_one = $(this).val()
+   $("select[id^='platform|']").change(function(e) {
+      var chosen_one = $(this).val();
       // release current symbol set
       var hidden = $(this).siblings('#platform');
        $.ajax({
@@ -234,11 +243,11 @@ $(document).ready(function () {
 
         var study_profile_platforms = [];
         var symbols_selected = [];
-        $('select').each(function() {
+        $("select[id^='platform|']").each(function() {
             if (this.value != 'none') {
                 var study_profile_platform = this.id + '|' + this.value;
                 var tokens = study_profile_platform.split('|')
-                var symbols = $("#symbols_" + tokens[1]).val();
+                var symbols = $("#symbols_" + tokens[2]).val();
                 if (typeof symbols != 'undefined') {
                     study_profile_platforms.push(study_profile_platform);
                     symbols_selected.push(symbols);
@@ -291,4 +300,5 @@ $(document).ready(function () {
             alert("Server side failure: " + textStatus);
         });
     });
-});
+
+ });

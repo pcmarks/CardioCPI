@@ -1,3 +1,5 @@
+import csv
+
 __author__ = 'pcmarks'
 
 import json
@@ -34,7 +36,7 @@ def platform_selection(request):
     :param request:
     :return:
     """
-    study, display_profile = request.GET.get("study_profile").split("|")
+    _, study, display_profile = request.GET.get("study_profile").split("|")
     profile = display_profile.replace('_', '-')
     new_platform = request.GET.get('new')
     old_platform = request.GET.get('old')
@@ -72,7 +74,7 @@ def all_plots(request):
     if not combined_plot:
         for i in range(len(spps)):
             spp = spps[i]
-            study, display_profile, platform = spp.split('|')
+            _, study, display_profile, platform = spp.split('|')
             profile = display_profile.replace('_', '-')
             symbols = symbols_selected[i].split(',')
             if len(symbols) == 0:
@@ -110,7 +112,7 @@ def all_plots(request):
         study = 'Combined'
         platforms = ''
         for spp in spps:
-            _, _, platform = spp.split('|')
+            _, _, _, platform = spp.split('|')
             platforms += platform + " "
         filename = plots.new_correlation_plot(0, result_matrix, study, platforms, row_labels, col_labels)
         figure_file_names['correlation'].append(filename)
@@ -133,7 +135,7 @@ def match_and_merge(spps, symbols_selected):
     for i in range(len(spps)):
         spp = spps[i]
         symbols = symbols_selected[i]
-        study, display_profile, platform = spp.split('|')
+        _, study, display_profile, platform = spp.split('|')
         profile = display_profile.replace('_', '-')
         symbols = symbols.split(',')
         # Get the profile data for these symbols; combined = True
@@ -188,17 +190,14 @@ def statistics(request):
     :param request:
     :return:
     """
-    # display_p_values = {}
-    # display_fdr_values = {}
-    fdr_value_cutoff = float(request.GET.get('fdr_value_cutoff'))
+    cutoff_type = request.GET.get('cutoff_type')
+    cutoff_value = float(request.GET.get('cutoff_value'))
     display_values = {}
-    p_value_cutoff = float(request.GET.get('p_value_cutoff'))
-    #show_top = int(request.GET.get('show_top'))
     show_top = 140;
     spps = request.GET.get('spps')
     spps = spps.split(',')
     for spp in spps:
-        study, display_profile, platform = spp.split('|')
+        _, study, display_profile, platform = spp.split('|')
         profile = display_profile.replace('_', '-')
         sample_ids = geo_data.get_sample_ids(study, profile, platform)
         control_sample_ids = []
@@ -237,29 +236,35 @@ def statistics(request):
         control_df = DataFrame(control_exprs, index=genes, columns=control_sample_ids)
         diseased_df = DataFrame(diseased_exprs, index=genes, columns=diseased_sample_ids)
 
+        # Perform the the t-test
         t_statistics, p_values = ttest_ind(control_df.T, diseased_df.T)
 
         p_values_series = Series(p_values, index=genes)
 
+        # Perform the fdr analysis
         #reject_bonferroni, pval_bonferroni = bonferroni_correction(p_values_series, alpha=p_value_cutoff)
-        reject_fdr, pval_fdr = fdr_correction(p_values_series, alpha=fdr_value_cutoff, method='indep')
+        reject_fdr, pval_fdr = fdr_correction(p_values_series, method='indep')
 
         # bonferroni_p_values = p_values_series[reject_bonferroni]
         # fdr_p_values = p_values_series[reject_fdr]
         fdr_values_series = Series(pval_fdr, index=genes)
         p_values_series.sort(ascending=True)
         combined_series = []
-        for i in range(show_top):
+        for i in range(len(p_values_series)):
             symbol = p_values_series.index[i]
             p_value = p_values_series[i]
+            if cutoff_type == 'p-value' and p_value > cutoff_value:
+                break
             fdr_value = fdr_values_series.get(symbol)
+            if cutoff_type == 'fdr-value' and fdr_value > cutoff_value:
+                break
             combined_series.append([symbol, p_value, fdr_value])
         # fdr_values_series.sort(ascending=True)
         display_values[display_profile] = combined_series
         # display_values = [(p_values_series.index[i].split('_')[0], p_values_series[i]) for i in range(10)]
         # display_values[display_profile] = [(p_values_series.index[i], p_values_series[i]) for i in range(show_top)]
         # display_fdr_values[display_profile] = [(fdr_values_series.index[i], fdr_values_series[i]) for i in range(show_top)]
-
+    request.session['display_values'] = display_values
     response = render_to_string('statistics.html',
         {"display_values": display_values})
                                 # {"display_p_values": display_p_values,
@@ -267,4 +272,20 @@ def statistics(request):
 
     return HttpResponse(response)
 
+def export(request):
+
+    id = request.GET.get('id')
+    _, profile = id.split('|')
+    display_profile = profile.replace('-', '_')
+    try:
+        stats = request.session['display_values']
+    except KeyError:
+        return HttpResponse()
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="%s-stats.csv"' % profile
+    writer = csv.writer(response)
+    values = stats[display_profile]
+    for line in values:
+        writer.writerow(line)
+    return response
 

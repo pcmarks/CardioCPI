@@ -19,6 +19,8 @@ urlpatterns = patterns('',
         name='all_plots'),
     url(r'^cardiocpi/statistics$', 'CardioCPIv2.views.statistics',
         name = 'statistics'),
+    url(r'^cardiocpi/export$', 'CardioCPIv2.views.export',
+        name = 'export'),
 
     # Examples:
     # Uncomment the admin/doc line below to enable admin documentation:
