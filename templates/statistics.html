@@ -2,13 +2,9 @@
     <div class="span5">
         {% if display_values.Expression_Genes %}
             <table id='eg-stats'
-                   class="display table table-striped table-condensed table-bordered">
+                   class="display table table-condensed table-bordered">
                 <thead>
                 <tr>
-                    <th>
-                        <input type="checkbox" id="all-p-values-chkbx"
-                               onclick="eg_values_select_all(this);">
-                    </th>
                     <th>Gene Symbol</th>
                     <th>P-Value</th>
                     <th>FDR-Value</th>
@@ -17,8 +13,6 @@
                 <tbody>
                 {% for symbol, p_value, fdr_value in display_values.Expression_Genes %}
                     <tr>
-                        <td><input type="checkbox" id="checkbox-eg-t-{{ symbol }}"
-                                   onclick="p_value_checked(this);"></td>
                         <td>{{ symbol }}</td>
                         <td>{{ p_value|floatformat:8 }}</td>
                         <td>{{ fdr_value|floatformat:8 }}</td>
@@ -31,13 +25,9 @@
     <div class="span1"></div>
     <div class="span5">
         {% if display_values.Expression_miRNA %}
-            <table id='mi-stats' class="display table table-striped table-condensed table-bordered">
+            <table id='mi-stats' class="display table table-condensed table-bordered">
                 <thead>
                 <tr>
-                    <th>
-                        <input type="checkbox" id="all-p-values-chkbx"
-                               onclick="mi_values_select_all(this);">
-                    </th>
                     <th>miRNA Symbol</th>
                     <th>P-Value</th>
                     <th>FDR Value</th>
@@ -46,8 +36,6 @@
                 <tbody>
                 {% for symbol, p_value, fdr_value in display_values.Expression_miRNA %}
                     <tr>
-                        <td><input type="checkbox" id="checkbox-mi-t-{{ symbol }}"
-                                   onclick="p_value_checked(this);"></td>
                         <td>{{ symbol }}</td>
                         <td>{{ p_value|floatformat:8 }}</td>
                         <td>{{ fdr_value|floatformat:8 }}</td>
@@ -55,6 +43,9 @@
                 {% endfor %}
                 </tbody>
             </table>
+            <script>
+
+            </script>
         {% endif %}
     </div>
 </div>
@@ -65,10 +56,6 @@
     <div class="span2"></div>
     <div class="span1">
         {% if display_values.Expression_Genes %}
-{#            <form action="cardiocpi/export" method="post">#}
-{#            {% csrf_token %}#}
-{#            <button type="submit" class="btn btn-info" name="download-1">Export</button>#}
-{#            </form>#}
             <input id="export|Expression-Genes"
                    name="export|Expression-Genes"
                    type="button" class="btn btn-info"
@@ -89,5 +76,20 @@
     <div class="span2"></div>
 </div>
 <script type="text/javascript">
-    $('table.display').dataTable();
+    var eg_stats_table = $('#eg-stats').dataTable( {
+        "order": [[1, "asc"]],
+        "dom": 'T<"clear">lfrtip',
+        "tableTools": {
+            "sRowSelect": "multi",
+            "aButtons": ["select_all", "select_none"]
+        }
+    });
+    var mi_stats_table = $('#mi-stats').dataTable( {
+        "order": [[1, "asc"]],
+        "dom": 'T<"clear">lfrtip',
+        "tableTools": {
+            "sRowSelect": "multi",
+            "aButtons": ["select_all", "select_none"]
+        }
+    });
 </script>

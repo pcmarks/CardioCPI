@@ -3,7 +3,6 @@
  * User: pcmarks
  * Date: 12/5/13
  * Time: 11:15 AM
- * To change this template use File | Settings | File Templates.
  */
 
 /*
@@ -18,37 +17,6 @@ var toggle_platforms = function(study) {
         $(this).toggle();
     });
 }
-var eg_values_select_all = function(all_checkbox){
-    if (all_checkbox.checked) {
-        $("input[id^=checkbox-eg]").each(function() {
-            if (!$(this).prop("checked")) {
-                $(this).click();
-            }
-        });
-    } else {
-        $("input[id^=checkbox-eg]").each(function() {
-            if ($(this).prop("checked")) {
-                $(this).click();
-            }
-        })
-    }
-};
-
-var mi_values_select_all = function(all_checkbox){
-    if (all_checkbox.checked) {
-        $("input[id^=checkbox-mi]").each(function() {
-            if (!$(this).prop("checked")) {
-                $(this).click();
-            }
-        });
-    } else {
-        $("input[id^=checkbox-mi]").each(function() {
-            if ($(this).prop("checked")) {
-                $(this).click();
-            }
-        })
-    }
-};
 
 /*
  The function to execute when a statistic table entry checkbox is checked/unchecked
@@ -91,7 +59,7 @@ var p_value_checked = function(the_checkbox){
             $('#symbols_Expression_miRNA').val(new_list).trigger("change");
         }
     }
-};
+}
 
 var export_statistics = function(id) {
     window.location = 'cardiocpi/export?id='+id;
@@ -106,26 +74,21 @@ var export_statistics = function(id) {
 
 $(document).ready(function () {
 
-//    // Initialize the datatables
-//    $('#eg-stats').DataTable({
-//        "processing": true,
-//        "serverSide": true,
-//        "ajax": "cardiocpi/statspage?platform=eg"
-//    });
-//    $('#mi-stats').DataTable({
-//        "processing": true,
-//        "serverSide": true,
-//        "ajax": "cardiocpi/statspage?platform=mi"
-//    });
-
+    // The Statistics button will call the server side function to prepare
+    // statistical analyses. Arguments to this function include platform names
+    // and a cutoff for p-values or fdr values.
     $('#statistics-btn').click(function() {
+
+        // Don't do any statistics calculation if there are no studies chosen
+        // because this means no platforms are chosen.
         var no_of_studies = $("input[id$='CB']").filter(":checked").length;
         if (no_of_studies == 0) {
             alert("You must choose at least one study and platform.")
             return false;
         }
 
-        // Execute an AJAX request for the statistics
+        // Build the arguments to the server-side statistical routines. There must
+        // be at least one platform chosen.
         var args = [];
         $("select[id^='platform|']").each(function () {
             if (this.value != 'none') {
@@ -138,10 +101,17 @@ $(document).ready(function () {
         }
         var cutoff_type = $("#cutoff-type").val();
         var cutoff_value = $("#cutoff-value").val();
+
+        // Show the spinner whilst we compute the statistics
+        $('#loading').show();
+
+        // Place the statistical tables in an area set aside.
+        // Turn off (hide) the spinner.
         $('#statistics').load('cardiocpi/statistics?' +
                 'spps=' + args +
                 '&cutoff_type=' + cutoff_type +
-                '&cutoff_value=' + cutoff_value);
+                '&cutoff_value=' + cutoff_value,
+            function() {$('#loading').hide();});
     });
 
     $('.btn-group').button();
@@ -164,7 +134,7 @@ $(document).ready(function () {
 
     /*
     Attach select2 functionality to the gene symbol input boxes.
-    A call is made to an R functions, via opencpu, that will return a list of
+    An ajax request is made to the server which will return a list of
     symbols that contain the typed in characters.
      */
     $("[id^='symbols_']").each(function() {
@@ -202,30 +172,35 @@ $(document).ready(function () {
     });
 
     /*
-     * Attach a function to the clear symbols button
+     * Attach a function to the Clear symbols button
      */
     $('#clear-symbols').click(function(e) {
         $('#symbols_Expression_Genes').select2("val", "");
         $('#symbols_Expression_miRNA').select2("val", "");
-        $("input[id^=all-p-values]").each(function() {
-            if ($(this).prop('checked')) {
-                $(this).click();
-            }
-        });
-        $("input[id^=checkbox-eg]").each(function() {
-            if ($(this).prop('checked')) {
-                $(this).click();
-            }
-        });
-        $("input[id^=checkbox-mi]").each(function() {
-            if ($(this).prop('checked')) {
-                $(this).click();
-            }
-        });
+//        $("input[id^=all-eg-values]").each(function() {
+//            if ($(this).prop('checked')) {
+//                $(this).click();
+//            }
+//        });
+//        $("input[id^=all-mi-values]").each(function() {
+//            if ($(this).prop('checked')) {
+//                $(this).click();
+//            }
+//        });
+//        $("input[id^=checkbox-eg]").each(function() {
+//            if ($(this).prop('checked')) {
+//                $(this).click();
+//            }
+//        });
+//        $("input[id^=checkbox-mi]").each(function() {
+//            if ($(this).prop('checked')) {
+//                $(this).click();
+//            }
+//        });
     });
 
     /*
-    Attach a function to the plot button.
+    Attach a function to the Plot button.
     Determine the number of studies that have been chosen, assemble the symbols
     to be analyzed, and call for the plotting of the correlation plots and heatmaps.
     If a combined plot is being asked for, handle differently. 
@@ -243,15 +218,36 @@ $(document).ready(function () {
 
         var study_profile_platforms = [];
         var symbols_selected = [];
+
         $("select[id^='platform|']").each(function() {
             if (this.value != 'none') {
                 var study_profile_platform = this.id + '|' + this.value;
                 var tokens = study_profile_platform.split('|')
-                var symbols = $("#symbols_" + tokens[2]).val();
-                if (typeof symbols != 'undefined') {
+                var symbols = []
+                var xsymbols = $("#symbols_" + tokens[2]).val();
+                if (typeof xsymbols != 'undefined') {
                     study_profile_platforms.push(study_profile_platform);
-                    symbols_selected.push(symbols);
                 }
+                if (tokens[2] == "Expression_Genes") {
+                    var oTT = TableTools.fnGetInstance('eg-stats');
+                } else {
+                    var oTT = TableTools.fnGetInstance('mi-stats');
+                }
+                if (oTT && typeof oTT != 'undefined') {
+                    var aData = oTT.fnGetSelectedData();
+                    var ysymbols = [];
+                    for (var i = 0; i < aData.length; i++) {
+                        ysymbols.push(aData[i][0]);
+                    }
+                    if (xsymbols != '') {
+                        symbols = xsymbols + ',' + ysymbols.join(',');
+                    } else {
+                        symbols = ysymbols.join(',');
+                    }
+                } else {
+                    symbols = xsymbols;
+                }
+                symbols_selected.push(symbols);
             }
         });
         if (study_profile_platforms.length == 0) {
@@ -283,7 +279,8 @@ $(document).ready(function () {
             data: {no_of_studies: JSON.stringify(no_of_studies),
                 combined_plot: JSON.stringify($('#combined-plot').prop("checked")),
                 study_profile_platforms: JSON.stringify(study_profile_platforms),
-                symbols_selected: JSON.stringify(symbols_selected)
+                symbols_selected: JSON.stringify(symbols_selected),
+                max_plots: JSON.stringify($('#max-plots').val())
                 }
         });
         request.done(function(result) {

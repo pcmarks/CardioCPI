@@ -69,6 +69,7 @@ def all_plots(request):
     spps = json.loads(request.GET.get(u'study_profile_platforms'))
     symbols_selected = json.loads(request.GET.get(u'symbols_selected'))
     combined_plot = json.loads(request.GET.get(u'combined_plot'))
+    max_plots = int(json.loads(request.GET.get(u'max_plots')))
     # print spps, symbols_selected, combined_plot
     figure_file_names = {'correlation': [], 'heatmap': []}
     if not combined_plot:
@@ -76,7 +77,7 @@ def all_plots(request):
             spp = spps[i]
             _, study, display_profile, platform = spp.split('|')
             profile = display_profile.replace('_', '-')
-            symbols = symbols_selected[i].split(',')
+            symbols = (symbols_selected[i].split(','))[:max_plots]
             if len(symbols) == 0:
                 break
             profile_data = geo_data.get_profile_data(study, profile, platform, symbols, False)
