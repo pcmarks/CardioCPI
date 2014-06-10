@@ -193,7 +193,7 @@ def statistics(request):
     """
     cutoff_type = request.GET.get('cutoff_type')
     cutoff_value = float(request.GET.get('cutoff_value'))
-    display_values = {}
+    display_values = request.session.get('display_values', {})
     show_top = 140;
     spps = request.GET.get('spps')
     spps = spps.split(',')
@@ -267,7 +267,7 @@ def statistics(request):
         # display_fdr_values[display_profile] = [(fdr_values_series.index[i], fdr_values_series[i]) for i in range(show_top)]
     request.session['display_values'] = display_values
     response = render_to_string('statistics.html',
-        {"display_values": display_values})
+        {display_profile: combined_series})
                                 # {"display_p_values": display_p_values,
                                 #  "display_fdr_values": display_fdr_values})
 

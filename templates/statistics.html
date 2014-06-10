@@ -1,95 +1,86 @@
+{% if Expression_Genes %}
+    <table id='eg-stats'
+           class="display table table-condensed table-bordered">
+        <thead>
+        <tr>
+            <th>Gene Symbol</th>
+            <th>P-Value</th>
+            <th>FDR-Value</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for symbol, p_value, fdr_value in Expression_Genes %}
+            <tr>
+                <td>{{ symbol }}</td>
+                <td>{{ p_value|floatformat:8 }}</td>
+                <td>{{ fdr_value|floatformat:8 }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <script>
+        var eg_stats_table = $('#eg-stats').dataTable({
+            "order": [
+                [1, "asc"]
+            ],
+            "dom": 'T<"clear">lfrtip',
+            "tableTools": {
+                "sRowSelect": "multi",
+                "aButtons": ["select_all", "select_none"]
+            }
+        });
+    </script>
+{% endif %}
+{% if Expression_miRNA %}
+    <table id='mi-stats' class="display table table-condensed table-bordered">
+        <thead>
+        <tr>
+            <th>miRNA Symbol</th>
+            <th>P-Value</th>
+            <th>FDR Value</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for symbol, p_value, fdr_value in Expression_miRNA %}
+            <tr>
+                <td>{{ symbol }}</td>
+                <td>{{ p_value|floatformat:8 }}</td>
+                <td>{{ fdr_value|floatformat:8 }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <script>
+        var mi_stats_table = $('#mi-stats').dataTable({
+            "order": [
+                [1, "asc"]
+            ],
+            "dom": 'T<"clear">lfrtip',
+            "tableTools": {
+                "sRowSelect": "multi",
+                "aButtons": ["select_all", "select_none"]
+            }
+        });
+    </script>
+{% endif %}
 <div class="row">
-    <div class="span5">
-        {% if display_values.Expression_Genes %}
-            <table id='eg-stats'
-                   class="display table table-condensed table-bordered">
-                <thead>
-                <tr>
-                    <th>Gene Symbol</th>
-                    <th>P-Value</th>
-                    <th>FDR-Value</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for symbol, p_value, fdr_value in display_values.Expression_Genes %}
-                    <tr>
-                        <td>{{ symbol }}</td>
-                        <td>{{ p_value|floatformat:8 }}</td>
-                        <td>{{ fdr_value|floatformat:8 }}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        {% endif %}
-    </div>
-    <div class="span1"></div>
-    <div class="span5">
-        {% if display_values.Expression_miRNA %}
-            <table id='mi-stats' class="display table table-condensed table-bordered">
-                <thead>
-                <tr>
-                    <th>miRNA Symbol</th>
-                    <th>P-Value</th>
-                    <th>FDR Value</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for symbol, p_value, fdr_value in display_values.Expression_miRNA %}
-                    <tr>
-                        <td>{{ symbol }}</td>
-                        <td>{{ p_value|floatformat:8 }}</td>
-                        <td>{{ fdr_value|floatformat:8 }}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-            <script>
-
-            </script>
-        {% endif %}
-    </div>
-</div>
-<div class="row">
-    <p></p>
-</div>
-<div class="row">
-    <div class="span2"></div>
-    <div class="span1">
-        {% if display_values.Expression_Genes %}
+    <div class="span6">
+        {% if Expression_Genes %}
             <input id="export|Expression-Genes"
                    name="export|Expression-Genes"
                    type="button" class="btn btn-info"
-                   value="Export"
+                   value="Export as CSV"
+                   data-toggle="tooltip" title="Export all gene expression values as a CSV file."
                    onclick="export_statistics(this.id);"/>
         {% endif %}
     </div>
-    <div class="span3"></div>
-    <div class="span2"></div>
-    <div class="span1">
-        {% if display_values.Expression_miRNA %}
+    <div class="span6">
+        {% if Expression_miRNA %}
             <input id="export|Expression-miRNA"
                    name="export|Expression-miRNA" type="button" class="btn btn-info"
-                   value="Export"
-                    onclick="export_statistics(this.id);"/>
+                   value="Export as CSV"
+                   data-toggle="tooltip" title="Export all miRNA expression values as a CSV file."
+                   onclick="export_statistics(this.id);"/>
         {% endif %}
     </div>
-    <div class="span2"></div>
 </div>
-<script type="text/javascript">
-    var eg_stats_table = $('#eg-stats').dataTable( {
-        "order": [[1, "asc"]],
-        "dom": 'T<"clear">lfrtip',
-        "tableTools": {
-            "sRowSelect": "multi",
-            "aButtons": ["select_all", "select_none"]
-        }
-    });
-    var mi_stats_table = $('#mi-stats').dataTable( {
-        "order": [[1, "asc"]],
-        "dom": 'T<"clear">lfrtip',
-        "tableTools": {
-            "sRowSelect": "multi",
-            "aButtons": ["select_all", "select_none"]
-        }
-    });
-</script>

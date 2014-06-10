@@ -61,14 +61,9 @@ var p_value_checked = function(the_checkbox){
     }
 }
 
+// This function is executed when the Export as CSV button is pushed
 var export_statistics = function(id) {
     window.location = 'cardiocpi/export?id='+id;
-//    var request = $.ajax({
-//        url: 'cardiocpi/export',
-//        data: {
-//            id: id
-//        }
-//    });
 }
 
 
@@ -77,7 +72,10 @@ $(document).ready(function () {
     // The Statistics button will call the server side function to prepare
     // statistical analyses. Arguments to this function include platform names
     // and a cutoff for p-values or fdr values.
-    $('#statistics-btn').click(function() {
+    $("[id^='statistics-btn']").click(function() {
+        // extract the data to use from the button's id
+        var tokens = (this.id).split('-');
+        var data_profile = tokens[2];
 
         // Don't do any statistics calculation if there are no studies chosen
         // because this means no platforms are chosen.
@@ -91,24 +89,33 @@ $(document).ready(function () {
         // be at least one platform chosen.
         var args = [];
         $("select[id^='platform|']").each(function () {
-            if (this.value != 'none') {
-                args.push(this.id + '|' + this.value);
+            if (data_profile == 'eg' && (this.id).search('Expression_Genes') >= 0) {
+                if (this.value != 'none') {
+                    args.push(this.id + '|' + this.value);
+                }
+            }
+            if (data_profile == 'mi' && (this.id).search('Expression_miRNA') >= 0) {
+                if (this.value != 'none') {
+                    args.push(this.id + '|' + this.value);
+                }
             }
         });
         if (args.length == 0) {
             alert("At least one platform must be selected.")
             return false;
         }
-        var cutoff_type = $("#cutoff-type").val();
-        var cutoff_value = $("#cutoff-value").val();
+        var cutoff_type = $("#cutoff-type-"+data_profile).val();
+        var cutoff_value = $("#cutoff-value-"+data_profile).val();
 
         // Show the spinner whilst we compute the statistics
         $('#loading').show();
-
-        // Place the statistical tables in an area set aside.
+        // Clear any previous statistics
+        $('#statistics-'+data_profile).empty();
+        // Place the statistical tables in an area that has been set aside.
         // Turn off (hide) the spinner.
-        $('#statistics').load('cardiocpi/statistics?' +
-                'spps=' + args +
+        $('#statistics-'+data_profile).load('cardiocpi/statistics?' +
+                'data_profile=' + data_profile +
+                '&spps=' + args +
                 '&cutoff_type=' + cutoff_type +
                 '&cutoff_value=' + cutoff_value,
             function() {$('#loading').hide();});
@@ -177,33 +184,13 @@ $(document).ready(function () {
     $('#clear-symbols').click(function(e) {
         $('#symbols_Expression_Genes').select2("val", "");
         $('#symbols_Expression_miRNA').select2("val", "");
-//        $("input[id^=all-eg-values]").each(function() {
-//            if ($(this).prop('checked')) {
-//                $(this).click();
-//            }
-//        });
-//        $("input[id^=all-mi-values]").each(function() {
-//            if ($(this).prop('checked')) {
-//                $(this).click();
-//            }
-//        });
-//        $("input[id^=checkbox-eg]").each(function() {
-//            if ($(this).prop('checked')) {
-//                $(this).click();
-//            }
-//        });
-//        $("input[id^=checkbox-mi]").each(function() {
-//            if ($(this).prop('checked')) {
-//                $(this).click();
-//            }
-//        });
     });
 
     /*
     Attach a function to the Plot button.
     Determine the number of studies that have been chosen, assemble the symbols
     to be analyzed, and call for the plotting of the correlation plots and heatmaps.
-    If a combined plot is being asked for, handle differently. 
+    Note whether a combined plot is being asked for.
      */
     $('#plot-btn').click(function(e) {
         var no_of_studies = $("input[id$='CB']").filter(":checked").length;
@@ -254,15 +241,27 @@ $(document).ready(function () {
             alert("At least one platform must be selected.")
             return false;
         }
-        var no_symbols = false;
+        var symbols_chosen = []
         for (var i = 0; i < study_profile_platforms.length; i++) {
             if (symbols_selected[i] == "") {
-                no_symbols = true;
+                symbols_chosen.push(false)
                 var tokens = study_profile_platforms[i].split('|');
                 alert("No symbols selected for the " + tokens[2] + " platform.");
+            } else {
+                symbols_chosen.push(true)
             }
         }
-        if (no_symbols) {
+        any_symbols_chosen = false
+        for (var i = 0; i < study_profile_platforms.length; i++) {
+            if (symbols_chosen[i]) {
+                any_symbols_chosen |= true
+            } else {
+                any_symbols_chosen |= false
+                study_profile_platforms.splice(i, 1);
+                symbols_selected.splice(i, 1);
+            }
+        }
+        if (!any_symbols_chosen) {
             return false;
         }
         // Set aside div's to hold all of the plots
@@ -272,7 +271,12 @@ $(document).ready(function () {
             $("#correlation-plots").append("<div id='correlation-plot-" + i +
                 "' class='plot'> </div>");
         }
-
+        // If this is a combined plot then at least two sets of symbols must be
+        // selected
+        if ($('#combined-plot').prop('checked') && study_profile_platforms.length < 2) {
+            alert("At least two sets of data required for combined plot.")
+            return false;
+        }
         var request = $.ajax({
             dataType: "json",
             url: 'cardiocpi/plots',
