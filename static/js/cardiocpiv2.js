@@ -251,7 +251,7 @@ $(document).ready(function () {
                 symbols_chosen.push(true)
             }
         }
-        any_symbols_chosen = false
+        var any_symbols_chosen = false
         for (var i = 0; i < study_profile_platforms.length; i++) {
             if (symbols_chosen[i]) {
                 any_symbols_chosen |= true

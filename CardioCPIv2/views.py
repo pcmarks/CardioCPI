@@ -70,6 +70,9 @@ def all_plots(request):
     symbols_selected = json.loads(request.GET.get(u'symbols_selected'))
     combined_plot = json.loads(request.GET.get(u'combined_plot'))
     max_plots = int(json.loads(request.GET.get(u'max_plots')))
+    # If this is a combined plot then choose half the symbols from each platform
+    if combined_plot:
+        max_plots = max_plots / 2
     # print spps, symbols_selected, combined_plot
     figure_file_names = {'correlation': [], 'heatmap': []}
     if not combined_plot:
@@ -109,6 +112,9 @@ def all_plots(request):
                                                                   col_labels,
                                                                   False))
     else:
+        # Adjust the number of symbols to use: half and half
+        symbols_selected[0] = ','.join((symbols_selected[0].split(','))[:max_plots])
+        symbols_selected[1] = ','.join((symbols_selected[1].split(','))[:max_plots])
         result_matrix, row_labels, col_labels = match_and_merge(spps, symbols_selected)
         study = 'Combined'
         platforms = ''
