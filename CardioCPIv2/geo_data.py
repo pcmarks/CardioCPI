@@ -1,11 +1,14 @@
 __author__ = 'pcmarks'
 """
     Provide support for accessing the GEO leveldb datastore.
+    Use an SSDB server for the backend
 
 """
 import leveldb
 from json import JSONDecoder, JSONEncoder
 import os
+
+from ssdb import SSDB
 
 global profile_db, clinical_db
 
@@ -50,7 +53,8 @@ profile_class_platforms = {}
 
 
 def db_open():
-    global profile_db, clinical_db
+    # global profile_db, clinical_db
+    global profile_db
 
     #############################################################################################
     # Replace the following two values with the directory path of the leveldb data stores: one for
@@ -64,18 +68,20 @@ def db_open():
 
     # Open the profile (expression) data store
     profileDatabaseDirectory = os.path.join(profileOuterDirectory, 'expression_db')
-    profile_db = leveldb.LevelDB(profileDatabaseDirectory)
+    # profile_db = leveldb.LevelDB(profileDatabaseDirectory)
+    profile_db = SSDB(host='localhost', port=8888)
 
     # open the clinical data store
-    clinicalDatabaseDirectory = os.path.join(clinicalOuterDirectory, 'clinical_db')
-    clinical_db = leveldb.LevelDB(clinicalDatabaseDirectory)
+    # clinicalDatabaseDirectory = os.path.join(clinicalOuterDirectory, 'clinical_db')
+    # clinical_db = leveldb.LevelDB(clinicalDatabaseDirectory)
 
 
 def db_close():
-    global profile_db, clinical_db
+    # global profile_db, clinical_db
+    global profile_db
 
     del profile_db
-    del clinical_db
+    # del clinical_db
 
 
 def new_switch_platform(request, study, profile, new_platform, old_platform):
@@ -87,16 +93,16 @@ def new_switch_platform(request, study, profile, new_platform, old_platform):
     :param old_platform:
     :return:
     """
-    db_open()
+    # db_open()
     if not request.session.get(profile):
         key = '|'.join(
             [study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, new_platform, genes_code])
-        gene_symbols = profile_db.Get(key)
+        gene_symbols = profile_db.get(key)
         gene_symbols_length = len(gene_symbols)
         # There might be duplicate sample ids in the list - remove them
         gene_symbol_list = JSONDecoder().decode(gene_symbols)
         request.session[profile] = gene_symbol_list
-    db_close()
+    # db_close()
     return
 
 
@@ -131,7 +137,7 @@ def switch_platform(study, profile, new_platform, old_platform):
         platform = parts[2]
         key = '|'.join(
             [study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, platform, genes_code])
-        gene_symbols = profile_db.Get(key)
+        gene_symbols = profile_db.get(key)
         gene_symbols_length = len(gene_symbols)
         # There might be duplicate sample ids in the list - remove them
         gene_symbol_list = JSONDecoder().decode(gene_symbols)
@@ -200,19 +206,19 @@ def get_profile_data(study, profile, platform, genes, combined):
     :param combined:
     :return:
     """
-    db_open()
+    # db_open()
     sample_attributes_list = []
     expressionValues = []
     try:
         key = '|'.join([study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, platform, sample_ids_code])
-        sample_ids = profile_db.Get(key)
+        sample_ids = profile_db.get(key)
         # There may be duplicates in the sample id list - get rid of them
         sample_id_list = JSONDecoder().decode(sample_ids)
         sample_id_list = list(set(sample_id_list))
         accepted_sample_id_list = []
         for sample_id in sample_id_list:
             try:
-                attributes = profile_db.Get('|'.join(
+                attributes = profile_db.get('|'.join(
                     [study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, platform,
                      SAMPLE_ID_CODE, sample_id, SAMPLE_ATTRIBUTES_CODE]))
             except KeyError:
@@ -225,7 +231,7 @@ def get_profile_data(study, profile, platform, genes, combined):
             sample_attributes_list.append(attributes)
             for gene in genes:
                 try:
-                    expr_value = profile_db.Get('|'.join( \
+                    expr_value = profile_db.get('|'.join( \
                         [study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, platform, \
                          SAMPLE_ID_CODE, sample_id, GENE_CODE, gene]))
                     try:
@@ -240,7 +246,7 @@ def get_profile_data(study, profile, platform, genes, combined):
         expressionValues = None
     result = {'values': expressionValues, 'sample_count': len(accepted_sample_id_list), \
               'sample_ids': accepted_sample_id_list, 'sample_attributes': sample_attributes_list}
-    db_close()
+    # db_close()
     return result
 
 
@@ -252,13 +258,13 @@ def get_sample_ids(study, profile, platform):
     :param platform:
     :return:
     """
-    db_open()
+    # db_open()
     key = '|'.join([study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, platform, sample_ids_code])
-    sample_ids = profile_db.Get(key)
+    sample_ids = profile_db.get(key)
     # There may be duplicates in the sample id list - get rid of them
     sample_id_list = JSONDecoder().decode(sample_ids)
     sample_id_list = list(set(sample_id_list))
-    db_close()
+    # db_close()
     return sample_id_list
 
 
@@ -270,10 +276,10 @@ def get_all_gene_symbols(study, profile, platform):
     :param platform:
     :return:
     """
-    db_open()
+    # db_open()
     key = '|'.join([study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, platform, genes_code])
-    genes = profile_db.Get(key)
-    db_close()
+    genes = profile_db.get(key)
+    # db_close()
     return JSONDecoder().decode(genes)
 
 
@@ -290,7 +296,7 @@ def get_gene_expression_value(study, profile, platform, sample_id, gene_symbol):
     try:
         key = '|'.join([study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, platform, \
                         SAMPLE_ID_CODE, sample_id, GENE_CODE, gene_symbol])
-        expr_value = profile_db.Get(key)
+        expr_value = profile_db.get(key)
     except KeyError:
         expr_value = None
     return expr_value
@@ -305,14 +311,14 @@ def get_sample_attributes(study, profile, platform, sample_id):
     :param sample_id:
     :return:
     """
-    db_open()
+    # db_open()
     attributes = None
     try:
         key = '|'.join([study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, platform, \
                         SAMPLE_ID_CODE, sample_id, SAMPLE_ATTRIBUTES_CODE])
-        attributes = profile_db.Get(key)
+        attributes = profile_db.get(key)
     except KeyError:
         pass
-    db_close()
+    # db_close()
     return JSONDecoder().decode(attributes)
 

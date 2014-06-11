@@ -19,6 +19,7 @@ from mne.stats import fdr_correction
 import plots
 import geo_data
 
+geo_data.db_open()
 
 def home(request):
     """
@@ -220,8 +221,8 @@ def statistics(request):
         no_of_genes = len(genes)
         control_exprs = zeros((no_of_genes, len(control_sample_ids)))
         diseased_exprs = zeros((no_of_genes, len(diseased_sample_ids)))
-        from geo_data import db_open, db_close
-        db_open()
+        # from geo_data import db_open, db_close
+        # db_open()
         for (g_index, gene) in enumerate(genes):
             gene_exprs = zeros(len(control_sample_ids))
             for (s_index, sample_id) in enumerate(control_sample_ids):
@@ -239,7 +240,7 @@ def statistics(request):
                 gene_exprs[s_index] = expr_value
             diseased_exprs[g_index] = gene_exprs
 
-        db_close()
+        # db_close()
         control_df = DataFrame(control_exprs, index=genes, columns=control_sample_ids)
         diseased_df = DataFrame(diseased_exprs, index=genes, columns=diseased_sample_ids)
 

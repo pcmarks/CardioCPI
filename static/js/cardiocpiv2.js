@@ -227,8 +227,13 @@ $(document).ready(function () {
                         ysymbols.push(aData[i][0]);
                     }
                     if (xsymbols != '') {
-                        symbols = xsymbols + ',' + ysymbols.join(',');
+                        if (ysymbols.length > 0) {
+                            symbols = xsymbols + ',' + ysymbols.join(',');
+                        } else {
+                            symbols = xsymbols
+                        }
                     } else {
+                        if (ysymbols.length > 0)
                         symbols = ysymbols.join(',');
                     }
                 } else {
