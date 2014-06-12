@@ -11,8 +11,10 @@ from numpy import array, reshape, zeros
 from pandas import DataFrame, Series
 from scipy.stats import ttest_ind
 
-# import os
-# os.environ["HOME"] = "/home/pcmarks"
+# We need to do the following so that the mne library can load. Apparently Apache
+# deletes the HOME variable
+import os
+os.environ["HOME"] = "/home/pcmarks"
 
 from mne.stats import fdr_correction
 

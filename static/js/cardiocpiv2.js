@@ -63,7 +63,7 @@ var p_value_checked = function(the_checkbox){
 
 // This function is executed when the Export as CSV button is pushed
 var export_statistics = function(id) {
-    window.location = 'cardiocpi/export?id='+id;
+    window.location = 'export?id='+id;
 }
 
 
@@ -113,7 +113,7 @@ $(document).ready(function () {
         $('#statistics-'+data_profile).empty();
         // Place the statistical tables in an area that has been set aside.
         // Turn off (hide) the spinner.
-        $('#statistics-'+data_profile).load('cardiocpi/statistics?' +
+        $('#statistics-'+data_profile).load('statistics?' +
                 'data_profile=' + data_profile +
                 '&spps=' + args +
                 '&cutoff_type=' + cutoff_type +
@@ -133,7 +133,7 @@ $(document).ready(function () {
        $.ajax({
            type: 'GET',
            dataType: 'json',
-           url: 'cardiocpi/platform_selection',
+           url: 'platform_selection',
            data: {study_profile: this.id, new: chosen_one, old: hidden.val()}
        })
       hidden.val(chosen_one);
@@ -152,7 +152,7 @@ $(document).ready(function () {
             maximumInputLength: 6,
             multiple: true,
             ajax: {
-                url: 'cardiocpi/gene_selection',
+                url: 'gene_selection',
                 dataType: 'json',
                 data: function(term, page) {
                     return {
@@ -282,9 +282,14 @@ $(document).ready(function () {
             alert("At least two sets of data required for combined plot.")
             return false;
         }
+        // Some symbols have been chosen, now limit the number that will be plotted
+        var max_plots = Number($('#max-plots').val());
+        for (var i = 0; i < study_profile_platforms.length; i++) {
+            symbols_selected[i] = symbols_selected[i].split(',').splice(0, max_plots).join(',')
+        }
         var request = $.ajax({
             dataType: "json",
-            url: 'cardiocpi/plots',
+            url: 'plots',
             data: {no_of_studies: JSON.stringify(no_of_studies),
                 combined_plot: JSON.stringify($('#combined-plot').prop("checked")),
                 study_profile_platforms: JSON.stringify(study_profile_platforms),
