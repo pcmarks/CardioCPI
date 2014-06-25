@@ -1,7 +1,13 @@
-__author__ = 'pcmarks'
+__author__ = 'Peter C Marks'
 """
-    Provide support for accessing the GEO leveldb datastore.
-    Use an SSDB server for the backend
+    Provide support for accessing the GEO leveldb datastore. An SSDB server does the actual
+    storage and retrieval.
+
+    The functions in this module expect certain values to be stored in Django's session
+    storage. For instance, the gene symbol cache that is used to speed up symbol
+    lookup by the client is stored in request.session[profile], where profile is the string
+    representation of the current profile, e.g., 'Expression-Genes', etc. Note that, because
+    Django's session storage is used, we can have multiple clients accessing the system.
 
 """
 import leveldb
@@ -56,35 +62,15 @@ def db_open():
     # global profile_db, clinical_db
     global profile_db
 
-    #############################################################################################
-    # Replace the following two values with the directory path of the leveldb data stores: one for
-    # the profile (expression) values and one for the clinical data
-    #
-    # profileOuterDirectory = '/home/pcmarks/Projects/Duarte/data/GEO'
-    # clinicalOuterDirectory = '/home/pcmarks/Projects/Duarte/data/GEO'
-    profileOuterDirectory = '/home/pcmarks/Work/MMCRI/duarte/GEO/data/database'
-    clinicalOuterDirectory = '/home/pcmarks/Work/MMCRI/duarte/GEO/data/database'
-    #############################################################################################
-
-    # Open the profile (expression) data store
-    profileDatabaseDirectory = os.path.join(profileOuterDirectory, 'expression_db')
-    # profile_db = leveldb.LevelDB(profileDatabaseDirectory)
+    # Connect to the SSDB server and save the handle globally
     profile_db = SSDB(host='localhost', port=8888)
 
-    # open the clinical data store
-    # clinicalDatabaseDirectory = os.path.join(clinicalOuterDirectory, 'clinical_db')
-    # clinical_db = leveldb.LevelDB(clinicalDatabaseDirectory)
-
-
 def db_close():
-    # global profile_db, clinical_db
     global profile_db
 
     del profile_db
-    # del clinical_db
 
-
-def new_switch_platform(request, study, profile, new_platform, old_platform):
+def switch_platform(request, study, profile, new_platform, old_platform):
     """
 
     :param study:
@@ -93,62 +79,16 @@ def new_switch_platform(request, study, profile, new_platform, old_platform):
     :param old_platform:
     :return:
     """
-    # db_open()
     if not request.session.get(profile):
         key = '|'.join(
             [study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, new_platform, genes_code])
         gene_symbols = profile_db.get(key)
-        gene_symbols_length = len(gene_symbols)
         # There might be duplicate sample ids in the list - remove them
         gene_symbol_list = JSONDecoder().decode(gene_symbols)
         request.session[profile] = gene_symbol_list
-    # db_close()
     return
 
-
-def switch_platform(study, profile, new_platform, old_platform):
-    """
-
-    :param study:
-    :param profile:
-    :param new_platform:
-    :param old_platform:
-    :return:
-    """
-    global gene_symbols_cache
-
-    new_key = '|'.join([study, profile, new_platform])
-    old_key = '|'.join([study, profile, old_platform])
-    if new_platform == "none":
-        if old_key in profile_class_platforms:
-            del profile_class_platforms[old_key]
-    elif old_platform == "none":
-        profile_class_platforms[new_key] = {}
-    else:
-        if old_key in profile_class_platforms:
-            del profile_class_platforms[old_key]
-        profile_class_platforms[new_key] = {}
-        # Rebuild the caches
-    gene_symbols_cache = {}
-    for profile_platform in profile_class_platforms:
-        parts = profile_platform.split('|')
-        study = parts[0]
-        profile = parts[1]
-        platform = parts[2]
-        key = '|'.join(
-            [study_code, study, PROFILE_CODE, profile, PLATFORM_CODE, platform, genes_code])
-        gene_symbols = profile_db.get(key)
-        gene_symbols_length = len(gene_symbols)
-        # There might be duplicate sample ids in the list - remove them
-        gene_symbol_list = JSONDecoder().decode(gene_symbols)
-        if profile in gene_symbols_cache:
-            gene_symbols_cache[profile] = gene_symbols_cache[profile].union(gene_symbol_list)
-        else:
-            gene_symbols_cache[profile] = set(gene_symbol_list)
-    return
-
-
-def new_match_symbols(request, profile, symbols):
+def match_symbols(request, profile, symbols):
     """
 
     :param profile:
@@ -161,30 +101,6 @@ def new_match_symbols(request, profile, symbols):
     genes = symbols.split(',')
     try:
         gene_symbol_list = request.session[profile]
-        if genes:
-            # Only grab the first gene symbol in the gene query
-            gene = genes[0].upper()
-            gene_symbol_list = [x for x in gene_symbol_list if gene in x]
-    except KeyError:
-        # No cache entry
-        pass
-    gene_symbols = JSONEncoder().encode(gene_symbol_list)
-    return gene_symbols
-
-
-def match_symbols(profile, symbols):
-    """
-
-    :param profile:
-    :param symbols:
-    :return:
-    """
-    global gene_symbols_cache
-
-    gene_symbol_list = None
-    genes = symbols.split(',')
-    try:
-        gene_symbol_list = gene_symbols_cache[profile]
         if genes:
             # Only grab the first gene symbol in the gene query
             gene = genes[0].upper()
@@ -321,4 +237,3 @@ def get_sample_attributes(study, profile, platform, sample_id):
         pass
     # db_close()
     return JSONDecoder().decode(attributes)
-
