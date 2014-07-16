@@ -31,8 +31,16 @@ from mne.stats import fdr_correction
 import plots
 import geo_data
 
+dataset_is_available = False
+
 # When this file is loaded by Python, open up the expression database via SSDB.
-geo_data.db_open()
+# Show an error if the dataset cannot be opened
+try:
+    geo_data.db_open()
+    dataset_is_available = True
+except TypeError:
+    pass
+
 
 def home(request):
     """
@@ -41,7 +49,8 @@ def home(request):
     :param request:
     :return:
     """
-    return render(request, 'index.html')
+
+    return render(request, 'index.html', {"dataset_is_available": dataset_is_available})
 
 
 def platform_selection(request):
@@ -101,7 +110,7 @@ def all_plots(request):
     #TODO: The following is completely arbitrary for now:
     # If this is a combined plot then choose half the symbols from each platform
     if combined_plot:
-        max_plots = max_plots / 2
+        max_plots /= 2
 
     # These file names are sent back to the client web page.
     figure_file_names = {'correlation': [], 'heatmap': []}
@@ -119,12 +128,12 @@ def all_plots(request):
             sample_ids = profile_data['sample_ids']
             sample_attributes = profile_data['sample_attributes']
             augmented_sample_ids = []
-            for i in range(len(sample_ids)):
-                attribute = json.loads(sample_attributes[i])
+            for j in range(len(sample_ids)):
+                attribute = json.loads(sample_attributes[j])
                 if attribute['control']:
-                    augmented_sample_ids.append('C-%s' % sample_ids[i])
+                    augmented_sample_ids.append('C-%s' % sample_ids[j])
                 else:
-                    augmented_sample_ids.append('D-%s' % sample_ids[i])
+                    augmented_sample_ids.append('D-%s' % sample_ids[j])
 
             an_array = array(profile_data['values'])
             a_matrix = reshape(an_array, (len(sample_ids), len(an_array) / len(sample_ids)))
@@ -195,7 +204,7 @@ def match_and_merge(spps, symbols_selected):
         profile_data_list.append(profile_data)
 
     # From these results we need to find only those samples that have co-samples
-    filter0 =  []
+    filter0 = []
     for index1, attribute in enumerate(co_samples_list[0]):
         co_sample_id = attribute['co_sample']
         if co_sample_id != '':
@@ -245,9 +254,10 @@ def statistics(request):
     cutoff_type = request.GET.get('cutoff_type')
     cutoff_value = float(request.GET.get('cutoff_value'))
     display_values = request.session.get('display_values', {})
-    show_top = 140;
     spps = request.GET.get('spps')
     spps = spps.split(',')
+    combined_series = []
+    display_profile = None
     for spp in spps:
         _, study, display_profile, platform = spp.split('|')
         profile = display_profile.replace('_', '-')
@@ -314,6 +324,7 @@ def statistics(request):
 
     return HttpResponse(response)
 
+
 def export(request):
 
     """
@@ -321,8 +332,8 @@ def export(request):
     :param request:
     :return:
     """
-    id = request.GET.get('id')
-    _, profile = id.split('|')
+    id_parameter = request.GET.get('id')
+    _, profile = id_parameter.split('|')
     display_profile = profile.replace('-', '_')
     try:
         stats = request.session['display_values']
@@ -335,4 +346,3 @@ def export(request):
     for line in values:
         writer.writerow(line)
     return response
-

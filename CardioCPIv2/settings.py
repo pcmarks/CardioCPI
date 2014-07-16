@@ -25,6 +25,12 @@ DATABASES = {
     }
 }
 
+# CardioCPI-specific parameters
+#
+# The host name and port that the SSDB data server is using
+SSDB_HOST = 'localhost'
+SSDB_PORT = 8888          # The default port
+
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = []

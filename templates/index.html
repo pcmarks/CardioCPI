@@ -50,6 +50,10 @@
     </div>
 </div>
 <div class="row">
+    {% if not dataset_is_available %}
+        <span>The SSDB server does not appear to be running.</span>
+
+    {% endif %}
     <div class="span12">
         <div id="studies">
             <table id="study-table" class="table table-condensed table-bordered">

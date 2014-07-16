@@ -10,11 +10,11 @@ __author__ = 'Peter C Marks'
     Django's session storage is used, we can have multiple clients accessing the system.
 
 """
-import leveldb
-from json import JSONDecoder, JSONEncoder
-import os
+import settings     # SSDB host and port values
 
-from ssdb import SSDB
+from json import JSONDecoder, JSONEncoder
+
+import pyssdb
 
 global profile_db, clinical_db
 
@@ -23,7 +23,7 @@ global profile_db, clinical_db
 # by "|"s
 # Example Keys:
 #       51              retrieves a list of cancers
-#       01/ov/52        retrieves a list of profiles for ov cancer
+#       01|ov|52        retrieves a list of profiles for ov cancer
 #
 SOURCE_CODE = '00'
 CANCER_CODE = '01'
@@ -63,7 +63,8 @@ def db_open():
     global profile_db
 
     # Connect to the SSDB server and save the handle globally
-    profile_db = SSDB(host='localhost', port=8888)
+    profile_db = pyssdb.Client(host=settings.SSDB_HOST, port=settings.SSDB_PORT)
+
 
 def db_close():
     global profile_db
