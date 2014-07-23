@@ -113,7 +113,7 @@ $(document).ready(function () {
         $('#statistics-'+data_profile).empty();
         // Place the statistical tables in an area that has been set aside.
         // Turn off (hide) the spinner.
-        $('#statistics-'+data_profile).load('statistics?' +
+        $('#statistics-'+data_profile).load('cardiocpi/statistics?' +
                 'data_profile=' + data_profile +
                 '&spps=' + args +
                 '&cutoff_type=' + cutoff_type +
@@ -133,7 +133,7 @@ $(document).ready(function () {
        $.ajax({
            type: 'GET',
            dataType: 'json',
-           url: 'platform_selection',
+           url: 'cardiocpi/platform_selection',
            data: {study_profile: this.id, new: chosen_one, old: hidden.val()}
        })
       hidden.val(chosen_one);
@@ -152,7 +152,7 @@ $(document).ready(function () {
             maximumInputLength: 6,
             multiple: true,
             ajax: {
-                url: 'gene_selection',
+                url: 'cardiocpi/gene_selection',
                 dataType: 'json',
                 data: function(term, page) {
                     return {
@@ -289,7 +289,7 @@ $(document).ready(function () {
         }
         var request = $.ajax({
             dataType: "json",
-            url: 'plots',
+            url: 'cardiocpi/plots',
             data: {no_of_studies: JSON.stringify(no_of_studies),
                 combined_plot: JSON.stringify($('#combined-plot').prop("checked")),
                 study_profile_platforms: JSON.stringify(study_profile_platforms),
