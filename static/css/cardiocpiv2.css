@@ -1,0 +1,63 @@
+/*
+    Override some of Bootstrap's settings
+*/
+
+body {background-color: #fffacd;}
+
+td.platform, td.symbol-entry {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.header {
+    color: #891d2d;
+    display: inline;
+}
+
+.plot {
+    margin: 20px;
+}
+
+#study-table th.study {
+    width: 25%;
+}
+#study-table th.platform {
+    width: 37.5%;
+}
+
+#gene-entry-table td.study {
+    width: 25%;
+}
+
+#gene-entry-table td.platform {
+    width: 37.5%;
+}
+
+
+table.table-bordered th, table.table-bordered td, table.table-bordered tfoot,
+table.table-bordered thead,
+table.table-bordered tbody, table.table-bordered tr, table.table-bordered{
+    border-color: darkblue;
+    border-width: 1px;
+}
+.nav {
+    border-color: darkblue;
+}
+
+.accordion-group, .accordion-heading {
+    border-color: darkblue;
+}
+
+.dataTables_length select {
+    width: 60px;
+}
+
+.dataTables_filter input {
+    width: 100px;
+}
+
+/* Override a select2 size so that the gene symbols area will scroll if necessary */
+.select2-container .select2-choices {
+    max-height: 100px;
+    overflow-y: auto;
+}

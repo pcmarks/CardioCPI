@@ -63,7 +63,8 @@ def db_open():
     global profile_db
 
     # Connect to the SSDB server and save the handle globally
-    profile_db = pyssdb.Client(host=settings.SSDB_HOST, port=settings.SSDB_PORT)
+#    profile_db = pyssdb.Client(host=settings.SSDB_HOST, port=settings.SSDB_PORT)
+    profile_db = pyssdb.Client()
 
 
 def db_close():
