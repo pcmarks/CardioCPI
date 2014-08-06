@@ -325,11 +325,11 @@ $(document).ready(function () {
         request.done(function(result) {
             var filenames = result['correlation']
             $.each(filenames, function(i, element) {
-                $("#correlation-plot-" + i).append('<img src="' + element + '">')
+                $("#correlation-plot-" + i).append('<img src="' + element +'?' + new Date().getTime() + '">')
             });
             filenames = result['heatmap']
             $.each(filenames, function(i, element) {
-                $("#heatmap-plot-" + i).append('<img src="' + element + '">')
+                $("#heatmap-plot-" + i).append('<img src="' + element +'?' + new Date().getTime() + '">')
             });
         });
         request.fail(function(jqXHR, textStatus) {
