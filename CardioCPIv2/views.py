@@ -114,7 +114,7 @@ def gene_selection(request):
     return HttpResponse(gene_list, content_type='text/json')
 
 
-def all_plots(request):
+def all_plots(request, plot_type):
 
     """
     The Plot button on the client web page has been pushed. Plotting parameters are passed
@@ -163,20 +163,23 @@ def all_plots(request):
             an_array = array(profile_data['values'])
             a_matrix = reshape(an_array, (len(sample_ids), len(an_array) / len(sample_ids)))
 
-            figure_file_names['correlation'].append(plots.new_correlation_plot(i,
-                                                                               a_matrix,
-                                                                               study,
-                                                                               platform,
-                                                                               augmented_sample_ids,
-                                                                               symbols))
-            row_labels = augmented_sample_ids
-            col_labels = symbols
-            figure_file_names['heatmap'].append(plots.new_heatmap(i, a_matrix,
-                                                                  study,
-                                                                  platform,
-                                                                  row_labels,
-                                                                  col_labels,
-                                                                  False))
+            if plot_type == u'correlation':
+
+                figure_file_names['correlation'].append(plots.new_correlation_plot(i,
+                                                                                   a_matrix,
+                                                                                   study,
+                                                                                   platform,
+                                                                                   augmented_sample_ids,
+                                                                                   symbols))
+            elif plot_type == u'heatmap':
+                row_labels = augmented_sample_ids
+                col_labels = symbols
+                figure_file_names['heatmap'].append(plots.new_heatmap(i, a_matrix,
+                                                                      study,
+                                                                      platform,
+                                                                      row_labels,
+                                                                      col_labels,
+                                                                      False))
     else:
         # A combined plot is called for. This requires the extra step of merging the
         # symbols that are in common amongst the platforms.
@@ -190,10 +193,12 @@ def all_plots(request):
         for spp in spps:
             _, _, _, platform = spp.split('|')
             platforms += platform + " "
-        filename = plots.new_correlation_plot(0, result_matrix, study, platforms, row_labels, col_labels)
-        figure_file_names['correlation'].append(filename)
-        filename = plots.new_heatmap(0, result_matrix, study, platforms, row_labels, col_labels, True)
-        figure_file_names['heatmap'].append(filename)
+        if plot_type == u'correlation':
+            filename = plots.new_correlation_plot(0, result_matrix, study, platforms, row_labels, col_labels)
+            figure_file_names['correlation'].append(filename)
+        else:
+            filename = plots.new_heatmap(0, result_matrix, study, platforms, row_labels, col_labels, True)
+            figure_file_names['heatmap'].append(filename)
 
     # Pass back the names of the files containing all the plots to the client side javascript code.
     response = HttpResponse(json.dumps(figure_file_names), content_type='text/json')

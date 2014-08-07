@@ -252,21 +252,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
                 <div id="plots-collapsible" class="accordion-body collapse">
                     <div class="accordion-inner">
                         <div class="row">
-                            <div class="span3"></div>
-                            <div class="span5 well">
-                                <form class="form-inline">
-                                    {% csrf_token %}
-                                    <label>Combined plot</label>
-                                    <input type="checkbox" id="combined-plot">
-                                    <label>Max. number of symbols plotted.</label>
-                                    <input id='max-plots' type="number" min="1" step="5" value="30" style="width:4em;">
-                                    <input id="plot-btn" name="plot-btn" type="button" class="btn btn-info"
-                                           value="Plot"/>
-                                </form>
-                            </div>
-                            <div class="span1"></div>
-                        </div>
-                        <div class="row">
                             <div class="tabbable span12">
                                 <ul class="nav nav-tabs" id="myPlotsTab">
                                     <li class="active">
@@ -278,10 +263,40 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
                                 </ul>
                                 <div class="tab-content" id="myTabContent">
                                     <div class="tab-pane active" id="correlation_tab">
+                                        <div class="row">
+                                            <div class="span3"></div>
+                                            <div class="span5 well">
+                                                <form class="form-inline">
+                                                    {% csrf_token %}
+                                                    <label>Combined plot</label>
+                                                    <input type="checkbox" id="combined-plot-correlation">
+                                                    <label>Max. number of symbols plotted.</label>
+                                                    <input id='max-plots-correlation' type="number" min="1" step="5" value="30" style="width:4em;">
+                                                    <input id="plot-btn-correlation" name="plot-btn" type="button" class="btn btn-info"
+                                                           value="Plot"/>
+                                                </form>
+                                            </div>
+                                            <div class="span1"></div>
+                                        </div>
                                         <div id="correlation-plots">
                                         </div>
                                     </div>
                                     <div class="tab-pane" id="heatmap_tab">
+                                        <div class="row">
+                                            <div class="span3"></div>
+                                            <div class="span5 well">
+                                                <form class="form-inline">
+                                                    {% csrf_token %}
+                                                    <label>Combined plot</label>
+                                                    <input type="checkbox" id="combined-plot-heatmap">
+                                                    <label>Max. number of symbols plotted.</label>
+                                                    <input id='max-plots-heatmap' type="number" min="1" step="5" value="30" style="width:4em;">
+                                                    <input id="plot-btn-heatmap" name="plot-btn" type="button" class="btn btn-info"
+                                                           value="Plot"/>
+                                                </form>
+                                            </div>
+                                            <div class="span1"></div>
+                                        </div>
                                         <div id="heatmaps">
                                         </div>
                                     </div>

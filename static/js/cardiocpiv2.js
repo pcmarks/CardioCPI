@@ -217,7 +217,10 @@ $(document).ready(function () {
     to be analyzed, and call for the plotting of the correlation plots and heatmaps.
     Note whether a combined plot is being asked for.
      */
-    $('#plot-btn').click(function(e) {
+    $("input[id^='plot-btn']").click(function(e) {
+        // Split the plot buttons id to extract the plot type
+        var plot_btn_parts = this.id.split('-');
+        var plot_type = plot_btn_parts[2];
         var no_of_studies = $("input[id$='CB']").filter(":checked").length;
         if (no_of_studies == 0) {
             alert("You must choose at least one study.")
@@ -225,8 +228,15 @@ $(document).ready(function () {
             return false;
         }
         // Remove previous images if there were any
-        $('#heatmaps').empty();
-        $('#correlation-plots').empty();
+        if (plot_type == "heatmap") {
+            $('#heatmaps').empty();
+        } else if (plot_type == "correlation") {
+            $('#correlation-plots').empty();
+        } else {
+            // Unknown plot type
+            alert("Unknown plot type: "+plot_type);
+            return false;
+        }
 
         var study_profile_platforms = [];
         var symbols_selected = [];
@@ -303,23 +313,23 @@ $(document).ready(function () {
         }
         // If this is a combined plot then at least two sets of symbols must be
         // selected
-        if ($('#combined-plot').prop('checked') && study_profile_platforms.length < 2) {
+        if ($('#combined-plot-' + plot_type).prop('checked') && study_profile_platforms.length < 2) {
             alert("At least two sets of data required for combined plot.")
             return false;
         }
         // Some symbols have been chosen, now limit the number that will be plotted
-        var max_plots = Number($('#max-plots').val());
+        var max_plots = Number($('#max-plots-' + plot_type).val());
         for (var i = 0; i < study_profile_platforms.length; i++) {
             symbols_selected[i] = symbols_selected[i].split(',').splice(0, max_plots).join(',')
         }
         var request = $.ajax({
             dataType: "json",
-            url: 'cardiocpi/plots',
+            url: 'cardiocpi/plots/' + plot_type,
             data: {no_of_studies: JSON.stringify(no_of_studies),
-                combined_plot: JSON.stringify($('#combined-plot').prop("checked")),
+                combined_plot: JSON.stringify($('#combined-plot-' + plot_type).prop("checked")),
                 study_profile_platforms: JSON.stringify(study_profile_platforms),
                 symbols_selected: JSON.stringify(symbols_selected),
-                max_plots: JSON.stringify($('#max-plots').val())
+                max_plots: JSON.stringify($('#max-plots-' + plot_type).val())
                 }
         });
         request.done(function(result) {
