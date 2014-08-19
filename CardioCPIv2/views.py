@@ -28,7 +28,7 @@ __author__ = 'pcmarks'
     The functions in this module implement the Django "View". That is, URLs are mapped (see urls.py)
     to a function here.
 
-    Data is retrieved by calling functions omt geo_data.py module.
+    Data is retrieved by calling functions in the geo_data.py module.
 
     NOTA BENE: PLEASE ADJUST os.environ["HOME"] (see below) to point to the home directory of the user that has
     imported the MNE statistical library. Apache messes up the environment variable HOME which MNE is
@@ -48,6 +48,7 @@ from scipy.stats import ttest_ind
 #TODO: It would be nice to not have to do the following:
 # We need to do the following so that the mne library can load. Apparently Apache
 # deletes the HOME variable
+# Change this to the home directory of the process running this application.
 import os
 os.environ["HOME"] = "/home/pcmarks"
 
