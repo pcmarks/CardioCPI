@@ -46,7 +46,7 @@ import sys
 # if running multiple sites in the same mod_wsgi process. To fix this, use
 # mod_wsgi daemon mode with each site in its own daemon process, or use
 # os.environ["DJANGO_SETTINGS_MODULE"] = "CardioCPIv2.settings"
-path = '/home/pcmarks/Desktop/Bio/CardioCPI'
+path = '/home/ubuntu/CardioCPI'
 if path not in sys.path:
     sys.path.append(path)
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "CardioCPIv2.settings")
