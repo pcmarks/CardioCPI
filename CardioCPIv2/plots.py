@@ -46,6 +46,7 @@ from numpy import arange
 from django.conf import settings
 import os
 import re
+import tempfile
 
 def new_correlation_plot(figure_number, expr_values, study, platform, sample_ids, symbols):
     """
@@ -82,11 +83,11 @@ def new_correlation_plot(figure_number, expr_values, study, platform, sample_ids
     fig.suptitle(title, y=0.99, fontsize=10)
     fig.set_size_inches(12.0, 10.5)
     canvas = FigureCanvas(fig)
-    plot_file_name = 'correlation%s.png' % figure_number
-    plot_file = os.path.join(settings.MEDIA_ROOT, plot_file_name)
+    plot_file = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
+    file_name = plot_file.name.split('/')[-1]
     canvas.print_figure(plot_file)
 
-    return '/media/' + plot_file_name
+    return settings.MEDIA_URL+file_name
 
 
 def new_heatmap(figure_number, expr_values, study, platform, sample_ids, symbols, combined):
@@ -209,11 +210,16 @@ def new_heatmap(figure_number, expr_values, study, platform, sample_ids, symbols
     fig.set_size_inches(12.0, 8.0)
 
     canvas = FigureCanvas(fig)
-    plot_file_name = 'heatmap%s.png' % figure_number
-    plot_file = os.path.join(settings.MEDIA_ROOT, plot_file_name)
+    # plot_file_name = 'heatmap%s.png' % figure_number
+    # plot_file = os.path.join(settings.MEDIA_ROOT, plot_file_name)
+    # canvas.print_figure(plot_file)
+    #
+    # return '/media/' + plot_file_name
+    plot_file = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
+    file_name = plot_file.name.split('/')[-1]
     canvas.print_figure(plot_file)
 
-    return '/media/' + plot_file_name
+    return settings.MEDIA_URL+file_name
 
 def clean_axis(axis):
     """Remove ticks, tick labels from axis
