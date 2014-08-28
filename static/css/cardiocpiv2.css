@@ -28,10 +28,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #usmLink a {
-    background: url(/static/image/USMFooterlogo-smaller.png) no-repeat left top;
+    background: url(/static/image/USMFooterlogo-smallest.png) no-repeat left top;
     background-color: #1464ab;
     width: 191px;
-    height: 71px;
+    height: 59px;
     text-indent: -9999px;
     display: block;
     float: right;
