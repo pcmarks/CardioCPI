@@ -174,7 +174,7 @@ $(document).ready(function () {
         var profile = thisId.replace('symbols_','')
         $(this).select2({
             minimumInputLength: 2,
-            maximumInputLength: 6,
+            maximumInputLength: 14,
             multiple: true,
             ajax: {
                 url: 'cardiocpi/gene_selection',
@@ -288,7 +288,14 @@ $(document).ready(function () {
                 var tokens = study_profile_platforms[i].split('|');
                 alert("No symbols selected for the " + tokens[2] + " platform.");
             } else {
-                symbols_chosen.push(true)
+                // Need at least two symbols for the plots to work
+                var symbols = symbols_selected[i].split(',');
+                if (symbols.length <= 2) {
+                    symbols_chosen.push(false);
+                    alert("At least three symbols must be selected for plotting.");
+                } else {
+                    symbols_chosen.push(true);
+                }
             }
         }
         var any_symbols_chosen = false
